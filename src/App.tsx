@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ELK from 'elkjs/lib/elk.bundled.js';
 import ReactFlow, {
   Background,
   Controls,
@@ -383,7 +382,7 @@ function ProductionGraph({
   const [isDragging, setIsDragging] = useState(false);
   const [snapEnabled, setSnapEnabled] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
-  const elk = useMemo(() => new ELK(), []);
+  const elkRef = useRef<any>(null);
   const rafRef = useRef<number>();
   const movedRef = useRef<Record<string, boolean>>({});
   const [exporting, setExporting] = useState(false);
@@ -394,8 +393,31 @@ function ProductionGraph({
 
   const lanePalette = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#38bdf8', '#c084fc'];
 
+  const loadElk = useCallback(async () => {
+    if (elkRef.current) return elkRef.current;
+    const candidates = [
+      () => import('elkjs/lib/elk.bundled.js'),
+      () => import('elkjs'),
+      () => import('@elkjs/elkjs/lib/elk.bundled.js'),
+      () => import('@elkjs/elkjs'),
+    ];
+    for (const loader of candidates) {
+      try {
+        const mod = await loader();
+        const ElkCtor = (mod as any).default || (mod as any).ELK || mod;
+        elkRef.current = new ElkCtor();
+        return elkRef.current;
+      } catch (e) {
+        continue;
+      }
+    }
+    return null;
+  }, []);
+
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
+      const elk = await loadElk();
+      if (!elk) return;
       const elkGraph = {
         id: 'root',
         layoutOptions: {

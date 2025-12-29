@@ -6,6 +6,7 @@ import ReactFlow, {
   getBezierPath,
   Position,
   Handle,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
   applyNodeChanges,
@@ -17,6 +18,7 @@ import ReactFlow, {
   type Node,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { toPng } from 'html-to-image';
 import { dataBundle, extractTierInfo } from './data/data';
 import { buildProducerMap } from './logic/recipes';
 import { buildCalculation, RequirementNode } from './logic/calculator';
@@ -381,7 +383,6 @@ function ProductionGraph({
   const [isDragging, setIsDragging] = useState(false);
   const [snapEnabled, setSnapEnabled] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
-  const toPngRef = useRef<((node: HTMLElement, options?: any) => Promise<string>) | null>(null);
   const rafRef = useRef<number>();
   const movedRef = useRef<Record<string, boolean>>({});
   const [exporting, setExporting] = useState(false);
@@ -391,21 +392,6 @@ function ProductionGraph({
   );
 
   const lanePalette = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#38bdf8', '#c084fc'];
-
-  const loadToPng = useCallback(async () => {
-    if (toPngRef.current) return toPngRef.current;
-    const candidates = ['html-to-image', 'html-to-image/index'];
-    for (const path of candidates) {
-      try {
-        const mod = await import(/* @vite-ignore */ path);
-        toPngRef.current = (mod as any).toPng;
-        return toPngRef.current;
-      } catch (e) {
-        continue;
-      }
-    }
-    return null;
-  }, []);
 
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
@@ -570,8 +556,6 @@ function ProductionGraph({
       await new Promise((resolve) => requestAnimationFrame(resolve));
 
       try {
-        const toPng = await loadToPng();
-        if (!toPng) throw new Error('html-to-image unavailable');
         const scale = 3;
         const dataUrl = await toPng(flowWrapperRef.current, {
           pixelRatio: scale,
@@ -1082,7 +1066,9 @@ function App() {
             )}
           </div>
 
-          <ProductionGraph root={calculation.root} machineLabel={machineLabel} />
+          <ReactFlowProvider>
+            <ProductionGraph root={calculation.root} machineLabel={machineLabel} />
+          </ReactFlowProvider>
 
           <WarningList warnings={collectWarnings(calculation.root)} />
         </div>

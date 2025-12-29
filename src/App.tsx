@@ -10,28 +10,7 @@ function classNames(...values: Array<string | false | undefined>) {
   return values.filter(Boolean).join(' ');
 }
 
-function formatDisplay(value?: number) {
-  if (value === undefined || Number.isNaN(value)) return '—';
-  const rounded = Math.round(value);
-  return rounded.toLocaleString(undefined, { maximumFractionDigits: 0 });
-}
-
 type Option = { value: string; label: string };
-
-type GraphNode = {
-  id: string;
-  label: string;
-  machine: string;
-  machinesNeeded?: number;
-  outputPerMin?: number;
-  depth: number;
-};
-
-type GraphEdge = {
-  from: string;
-  to: string;
-  label: string;
-};
 
 function SearchableSelect({
   label,
@@ -103,47 +82,81 @@ function WarningList({ warnings }: { warnings: string[] }) {
   );
 }
 
-function MachineSelector({
-  machineChoices,
-  onChange,
+function TreeNodeView({ node, depth = 0 }: { node: RequirementNode; depth?: number }) {
+  return (
+    <div className={classNames('border-l border-slate-800 pl-4', depth === 0 && 'border-l-0 pl-0')}>
+      <div className="flex flex-wrap items-center gap-2 rounded-md bg-slate-900/60 p-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-100">{node.itemName}</p>
+          <p className="text-xs text-slate-400">Target: {node.desiredPerMin.toFixed(3)} / min</p>
+        </div>
+        {node.recipe ? (
+          <div className="text-xs text-slate-300">
+            <p>Recipe: {node.recipe.name}</p>
+            {node.craftedIn ? <p>Crafted in: {node.craftedIn}</p> : null}
+            {node.baseTimeSec ? <p>baseTimeSec: {node.baseTimeSec}s</p> : null}
+            {node.machinesNeeded !== undefined ? <p>Machines needed: {node.machinesNeeded}</p> : null}
+            {node.actualOutputPerMin !== undefined ? (
+              <p>Output: {node.actualOutputPerMin} / min</p>
+            ) : null}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400">No recipe available.</p>
+        )}
+        {node.warnings.length > 0 ? (
+          <div className="text-xs text-amber-300">{node.warnings.join(' ')} </div>
+        ) : null}
+      </div>
+      <div className="mt-2 space-y-2">
+        {node.inputs.map((edge) => (
+          <div key={edge.itemId}>
+            <p className="text-xs text-indigo-200">
+              Requires {edge.perMinute.toFixed(3)} / min of {edge.itemName}
+            </p>
+            {edge.node ? <TreeNodeView node={edge.node} depth={depth + 1} /> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Overrides({
+  selection,
+  onOverride,
 }: {
-  machineChoices: Record<string, string>;
-  onChange: (familyId: string, machineId?: string) => void;
+  selection: RecipeSelection;
+  onOverride: (itemId: string, recipeId: string | undefined) => void;
 }) {
-  const families = useMemo(() => {
-    const craftedFamilies = new Set<string>();
-    Object.values(dataBundle.recipes).forEach((recipe) => {
-      if (recipe.craftedIn) craftedFamilies.add(recipe.craftedIn);
-    });
-    return Array.from(craftedFamilies)
-      .map((id) => ({ id, label: dataBundle.machines[id]?.name ?? id }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, []);
-
-  const options = Object.values(dataBundle.machines).sort((a, b) => a.name.localeCompare(b.name));
-
-  if (families.length === 0) return null;
+  const multiRecipeItems = Object.entries(producers)
+    .filter(([, recipes]) => recipes.length > 1)
+    .map(([itemId, recipes]) => ({
+      itemId,
+      name: dataBundle.items[itemId]?.name ?? itemId,
+      recipes,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <details className="card space-y-3 p-4">
-      <summary className="cursor-pointer text-sm font-semibold text-slate-100">Machine tier preferences</summary>
+      <summary className="cursor-pointer text-sm font-semibold text-slate-100">Advanced recipe overrides</summary>
       <p className="text-sm text-slate-300">
-        Choose which machine tier/type to display for each crafting family (e.g., assembler, smelter). This does not
-        change speed in the current data set but helps plan which tier you want to build.
+        Choose which recipe to use for a given item when multiple producers exist. Overrides are also saved in the
+        shareable URL.
       </p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {families.map((family) => (
-          <div key={family.id} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
-            <p className="text-sm font-semibold text-slate-100">{family.label}</p>
+        {multiRecipeItems.map((entry) => (
+          <div key={entry.itemId} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
+            <p className="text-sm font-semibold text-slate-100">{entry.name}</p>
             <select
               className="input"
-              value={machineChoices[family.id] ?? ''}
-              onChange={(e) => onChange(family.id, e.target.value || undefined)}
+              value={selection.overrides[entry.itemId] ?? ''}
+              onChange={(e) => onOverride(entry.itemId, e.target.value || undefined)}
             >
-              <option value="">Default ({family.label})</option>
-              {options.map((machine) => (
-                <option key={machine.id} value={machine.id}>
-                  {machine.name}
+              <option value="">Default (tier preference)</option>
+              {entry.recipes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
                 </option>
               ))}
             </select>
@@ -151,157 +164,6 @@ function MachineSelector({
         ))}
       </div>
     </details>
-  );
-}
-
-function buildGraphData(
-  node: RequirementNode,
-  machineLabel: (id?: string | null) => string,
-): { nodes: GraphNode[]; edges: GraphEdge[]; minDepth: number; maxDepth: number } {
-  const nodes: GraphNode[] = [];
-  const edges: GraphEdge[] = [];
-  const seen = new Set<string>();
-  let minDepth = 0;
-  let maxDepth = 0;
-
-  const walk = (current: RequirementNode, depth: number) => {
-    const id = current.recipeId ?? `raw-${current.itemId}`;
-    minDepth = Math.min(minDepth, depth);
-    maxDepth = Math.max(maxDepth, depth);
-
-    if (!seen.has(id)) {
-      nodes.push({
-        id,
-        label: current.recipe?.name ?? `${current.itemName} (raw)`,
-        machine: current.recipe ? machineLabel(current.craftedIn) : 'Raw resource',
-        machinesNeeded: current.machinesNeeded,
-        outputPerMin: current.actualOutputPerMin ?? current.desiredPerMin,
-        depth,
-      });
-      seen.add(id);
-    }
-
-    current.inputs.forEach((edge) => {
-      if (edge.node) {
-        const childId = edge.node.recipeId ?? `raw-${edge.node.itemId}`;
-        edges.push({
-          from: childId,
-          to: id,
-          label: `${edge.itemName}: ${formatDisplay(edge.perMinute)} / min`,
-        });
-        walk(edge.node, depth - 1);
-      }
-    });
-  };
-
-  walk(node, 0);
-  return { nodes, edges, minDepth, maxDepth };
-}
-
-const CARD_WIDTH = 220;
-const CARD_HEIGHT = 120;
-
-function ProductionGraph({
-  root,
-  machineLabel,
-}: {
-  root: RequirementNode;
-  machineLabel: (id?: string | null) => string;
-}) {
-  const { nodes, edges, minDepth, maxDepth } = useMemo(() => buildGraphData(root, machineLabel), [root, machineLabel]);
-
-  const depthGroups = useMemo(() => {
-    const groups: Record<number, GraphNode[]> = {};
-    nodes.forEach((n) => {
-      const col = n.depth;
-      groups[col] ??= [];
-      groups[col].push(n);
-    });
-    Object.values(groups).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-    return groups;
-  }, [nodes]);
-
-  const normalizedGroups = useMemo(() => {
-    const offset = -minDepth;
-    const normalized: Record<number, GraphNode[]> = {};
-    Object.entries(depthGroups).forEach(([depthStr, list]) => {
-      const depth = Number(depthStr);
-      normalized[depth + offset] = list;
-    });
-    return normalized;
-  }, [depthGroups, minDepth]);
-
-  const columnCount = maxDepth - minDepth + 1;
-  const maxRows = Math.max(...Object.values(normalizedGroups).map((g) => g.length));
-  const svgWidth = columnCount * (CARD_WIDTH + 80);
-  const svgHeight = (maxRows + 1) * (CARD_HEIGHT + 40);
-
-  const positions: Record<string, { x: number; y: number }> = {};
-  Object.entries(normalizedGroups).forEach(([colStr, list]) => {
-    const col = Number(colStr);
-    list.forEach((node, index) => {
-      positions[node.id] = {
-        x: col * (CARD_WIDTH + 80) + 20,
-        y: index * (CARD_HEIGHT + 40) + 20,
-      };
-    });
-  });
-
-  return (
-    <div className="card p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-100">Production graph</h2>
-        <p className="text-xs text-slate-400">Flows left → right (raw to final)</p>
-      </div>
-      <div className="relative mt-4 overflow-auto" style={{ height: Math.min(svgHeight + 40, 640) }}>
-        <svg width={svgWidth} height={svgHeight} className="absolute left-0 top-0">
-          <defs>
-            <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L10,5 L0,10 z" fill="#818cf8" />
-            </marker>
-          </defs>
-          {edges.map((edge) => {
-            const from = positions[edge.from];
-            const to = positions[edge.to];
-            if (!from || !to) return null;
-            const startX = from.x + CARD_WIDTH;
-            const startY = from.y + CARD_HEIGHT / 2;
-            const endX = to.x;
-            const endY = to.y + CARD_HEIGHT / 2;
-            const midX = (startX + endX) / 2;
-            return (
-              <g key={`${edge.from}-${edge.to}-${edge.label}`}>
-                <path
-                  d={`M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`}
-                  fill="none"
-                  stroke="#818cf8"
-                  strokeWidth={2}
-                  markerEnd="url(#arrow)"
-                />
-                <text x={midX} y={(startY + endY) / 2 - 6} className="text-xs fill-indigo-200" textAnchor="middle">
-                  {edge.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-        {nodes.map((node) => {
-          const pos = positions[node.id];
-          return (
-            <div
-              key={node.id}
-              className="absolute w-[220px] rounded-lg border border-slate-800 bg-slate-900/80 p-3 shadow-lg shadow-slate-900/40"
-              style={{ left: pos.x, top: pos.y }}
-            >
-              <p className="text-sm font-semibold text-slate-50">{node.label}</p>
-              <p className="text-xs text-slate-400">{node.machine}</p>
-              <p className="text-xs text-slate-300 mt-1">Machines: {formatDisplay(node.machinesNeeded)}</p>
-              <p className="text-xs text-slate-300">Output: {formatDisplay(node.outputPerMin)} / min</p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 
@@ -319,7 +181,6 @@ function App() {
   const [roundUpMachines, setRoundUpMachines] = useState(false);
   const [tierPreferences, setTierPreferences] = useState<Record<string, number>>({});
   const [recipeOverrides, setRecipeOverrides] = useState<Record<string, string>>({});
-  const [machineChoices, setMachineChoices] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -328,7 +189,6 @@ function App() {
     const roundParam = params.get('round');
     const tiersParam = params.get('tiers');
     const overridesParam = params.get('overrides');
-    const machinesParam = params.get('machines');
 
     if (item) setSelectedItemId(item);
     if (rateParam) setDesiredRate(Number.parseFloat(rateParam));
@@ -351,15 +211,6 @@ function App() {
       });
       setRecipeOverrides(parsed);
     }
-
-    if (machinesParam) {
-      const parsed: Record<string, string> = {};
-      machinesParam.split(';').forEach((entry) => {
-        const [family, machineId] = entry.split(':');
-        if (family && machineId) parsed[family] = machineId;
-      });
-      setMachineChoices(parsed);
-    }
   }, []);
 
   useEffect(() => {
@@ -378,14 +229,9 @@ function App() {
       .join(';');
     if (overrideEntries) params.set('overrides', overrideEntries);
 
-    const machineEntries = Object.entries(machineChoices)
-      .map(([family, machine]) => `${family}:${machine}`)
-      .join(';');
-    if (machineEntries) params.set('machines', machineEntries);
-
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
-  }, [desiredRate, machineChoices, recipeOverrides, roundUpMachines, selectedItemId, tierPreferences]);
+  }, [desiredRate, recipeOverrides, roundUpMachines, selectedItemId, tierPreferences]);
 
   const selection: RecipeSelection = useMemo(
     () => ({ overrides: recipeOverrides, tierPreferences }),
@@ -448,12 +294,6 @@ function App() {
     return [...node.warnings, ...childWarnings];
   };
 
-  const machineLabel = (craftedIn?: string | null) => {
-    if (!craftedIn) return 'Unknown machine';
-    const chosen = machineChoices[craftedIn] ?? craftedIn;
-    return dataBundle.machines[chosen]?.name ?? chosen;
-  };
-
   const version = dataBundle.version.version ?? 'unknown';
 
   return (
@@ -491,7 +331,7 @@ function App() {
               className="input"
               type="number"
               min={0}
-              step={1}
+              step={0.1}
               value={desiredRate}
               onChange={(e) => setDesiredRate(Number.parseFloat(e.target.value))}
             />
@@ -528,77 +368,33 @@ function App() {
             </label>
           </div>
         </div>
-        <div className="space-y-3">
-          <MachineSelector
-            machineChoices={machineChoices}
-            onChange={(familyId, machineId) =>
-              setMachineChoices((prev) => {
-                const next = { ...prev };
-                if (!machineId) delete next[familyId];
-                else next[familyId] = machineId;
-                return next;
-              })
-            }
-          />
-          <details className="card space-y-3 p-4">
-            <summary className="cursor-pointer text-sm font-semibold text-slate-100">Advanced recipe overrides</summary>
-            <p className="text-sm text-slate-300">
-              Choose which recipe to use for a given item when multiple producers exist. Overrides are saved in the
-              shareable URL.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Object.entries(producers)
-                .filter(([, recipes]) => recipes.length > 1)
-                .map(([itemId, recipes]) => ({
-                  itemId,
-                  name: dataBundle.items[itemId]?.name ?? itemId,
-                  recipes,
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((entry) => (
-                  <div key={entry.itemId} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
-                    <p className="text-sm font-semibold text-slate-100">{entry.name}</p>
-                    <select
-                      className="input"
-                      value={selection.overrides[entry.itemId] ?? ''}
-                      onChange={(e) =>
-                        setRecipeOverrides((prev) => {
-                          const next = { ...prev };
-                          const value = e.target.value;
-                          if (!value) delete next[entry.itemId];
-                          else next[entry.itemId] = value;
-                          return next;
-                        })
-                      }
-                    >
-                      <option value="">Default (tier preference)</option>
-                      {entry.recipes.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-            </div>
-          </details>
-        </div>
+        <Overrides
+          selection={selection}
+          onOverride={(itemId, recipeId) => {
+            setRecipeOverrides((prev) => {
+              const next = { ...prev };
+              if (!recipeId) delete next[itemId];
+              else next[itemId] = recipeId;
+              return next;
+            });
+          }}
+        />
       </div>
 
       {calculation.root ? (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard title="Target" value={`${formatDisplay(desiredRate)} / min`} sub={calculation.root.itemName} />
+            <SummaryCard title="Target" value={`${desiredRate.toFixed(3)} / min`} sub={calculation.root.itemName} />
             <SummaryCard
               title="Machines needed"
-              value={formatDisplay(calculation.root.machinesNeeded)}
-              sub={machineLabel(calculation.root.craftedIn)}
+              value={calculation.root.machinesNeeded !== undefined ? `${calculation.root.machinesNeeded}` : 'Unknown'}
+              sub={calculation.root.craftedIn ?? 'N/A'}
             />
             <SummaryCard
               title="Base time"
               value={
                 calculation.root.baseTimeSec !== null && calculation.root.baseTimeSec !== undefined
-                  ? `${formatDisplay(calculation.root.baseTimeSec)}s`
+                  ? `${calculation.root.baseTimeSec}s`
                   : 'Unknown'
               }
               sub={calculation.root.recipe?.name ?? 'No recipe'}
@@ -607,8 +403,8 @@ function App() {
               title="Actual output"
               value={
                 calculation.root.actualOutputPerMin !== undefined
-                  ? `${formatDisplay(calculation.root.actualOutputPerMin)} / min`
-                  : `${formatDisplay(desiredRate)} / min`
+                  ? `${calculation.root.actualOutputPerMin} / min`
+                  : `${desiredRate.toFixed(3)} / min`
               }
               sub={roundUpMachines ? 'Rounded machines may exceed target' : 'Exact machines'}
             />
@@ -632,8 +428,8 @@ function App() {
                     {totalsEntries.map((row) => (
                       <tr key={row.itemId} className="border-t border-slate-800">
                         <td className="p-2">{row.name}</td>
-                        <td className="p-2">{formatDisplay(row.perMin)}</td>
-                        <td className="p-2">{formatDisplay(row.perSec)}</td>
+                        <td className="p-2">{row.perMin.toFixed(3)}</td>
+                        <td className="p-2">{row.perSec.toFixed(3)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -642,7 +438,13 @@ function App() {
             )}
           </div>
 
-          <ProductionGraph root={calculation.root} machineLabel={machineLabel} />
+          <div className="card space-y-3 p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-100">Crafting tree</h2>
+              <p className="text-xs text-slate-400">Collapsible via nested cards</p>
+            </div>
+            <TreeNodeView node={calculation.root} />
+          </div>
 
           <WarningList warnings={collectWarnings(calculation.root)} />
         </div>

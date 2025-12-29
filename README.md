@@ -38,7 +38,7 @@ npm run preview # optional local preview
 - **Data layer:** `src/data/data.ts` loads JSON and exposes helper utilities (tier parsing, variant grouping).
 - **Recipe selection:** `src/logic/recipes.ts` builds producer maps, applies overrides, and respects tier preferences (defaults to Tier 1 when present).
 - **Calculation engine:** `src/logic/calculator.ts` walks recipes recursively, detects cycles, sums per-minute inputs, and skips machine math when `baseTimeSec` is missing while still propagating input needs.
-- **UI:** `src/App.tsx` provides a searchable item picker, variant/tier chooser, machine rounding toggle, advanced recipe overrides, input aggregation table, and a collapsible crafting tree. State is persisted in the URL for shareable links.
+- **UI:** `src/App.tsx` provides a searchable item picker, variant/tier chooser, machine rounding toggle, advanced recipe overrides, machine tier selection per craftedIn family, an aggregated input table, and a left-to-right production graph that visualizes recipes and flows. State is persisted in the URL for shareable links.
 
 ## Handling edge cases
 

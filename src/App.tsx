@@ -16,6 +16,11 @@ function formatDisplay(value?: number) {
   return rounded.toString();
 }
 
+function formatEdgeRate(value: number) {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded}` : `${rounded.toFixed(1)}`;
+}
+
 type Option = { value: string; label: string };
 
 type GraphNode = {
@@ -25,12 +30,16 @@ type GraphNode = {
   machinesNeeded?: number;
   outputPerMin?: number;
   depth: number;
+  stage: 'raw' | 'smelting' | 'assembly' | 'final';
+  isTarget?: boolean;
 };
 
 type GraphEdge = {
   from: string;
   to: string;
-  label: string;
+  itemId: string;
+  itemName: string;
+  perMinute: number;
 };
 
 function SearchableSelect({
@@ -154,13 +163,28 @@ function MachineSelector({
   );
 }
 
+function classifyStage(current: RequirementNode, targetItemId: string): GraphNode['stage'] {
+  if (!current.recipe || !current.craftedIn) return 'raw';
+  if (current.itemId === targetItemId) return 'final';
+  const machine = current.craftedIn.toLowerCase();
+  if (machine.includes('smelt') || machine.includes('casting')) return 'smelting';
+  return 'assembly';
+}
+
 function buildGraphData(
   node: RequirementNode,
   machineLabel: (id?: string | null) => string,
-): { nodes: GraphNode[]; edges: GraphEdge[]; minDepth: number; maxDepth: number } {
+  targetItemId: string,
+): {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  columns: Record<number, GraphNode[]>;
+  minDepth: number;
+  maxDepth: number;
+} {
   const nodes: GraphNode[] = [];
-  const edges: GraphEdge[] = [];
-  const seen = new Set<string>();
+  const edgeList: GraphEdge[] = [];
+  const seen = new Map<string, GraphNode>();
   let minDepth = 0;
   let maxDepth = 0;
 
@@ -170,24 +194,30 @@ function buildGraphData(
     maxDepth = Math.max(maxDepth, depth);
 
     if (!seen.has(id)) {
-      nodes.push({
+      const stage = classifyStage(current, targetItemId);
+      const nodeEntry: GraphNode = {
         id,
-        label: current.recipe?.name ?? `${current.itemName} (raw)`,
+        label: current.itemName,
         machine: current.recipe ? machineLabel(current.craftedIn) : 'Raw resource',
         machinesNeeded: current.machinesNeeded,
         outputPerMin: current.actualOutputPerMin ?? current.desiredPerMin,
         depth,
-      });
-      seen.add(id);
+        stage,
+        isTarget: current.itemId === targetItemId,
+      };
+      nodes.push(nodeEntry);
+      seen.set(id, nodeEntry);
     }
 
     current.inputs.forEach((edge) => {
       if (edge.node) {
         const childId = edge.node.recipeId ?? `raw-${edge.node.itemId}`;
-        edges.push({
+        edgeList.push({
           from: childId,
           to: id,
-          label: `${edge.itemName}: ${formatDisplay(edge.perMinute)} / min`,
+          itemId: edge.itemId,
+          itemName: edge.itemName,
+          perMinute: edge.perMinute,
         });
         walk(edge.node, depth - 1);
       }
@@ -195,11 +225,45 @@ function buildGraphData(
   };
 
   walk(node, 0);
-  return { nodes, edges, minDepth, maxDepth };
+
+  const columns: Record<number, GraphNode[]> = {};
+  nodes.forEach((n) => {
+    columns[n.depth] ??= [];
+    columns[n.depth].push(n);
+  });
+
+  // heuristic: sort nodes within column to align with neighbors (average target depth)
+  Object.entries(columns).forEach(([depthStr, list]) => {
+    const depth = Number(depthStr);
+    const incoming = edgeList.filter((e) => (columns[depth - 1] ?? []).some((n) => n.id === e.from));
+    const scores = new Map<string, number>();
+    list.forEach((n) => scores.set(n.id, 0));
+    incoming.forEach((e) => {
+      scores.set(e.to, (scores.get(e.to) ?? 0) + 1);
+    });
+    list.sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) || a.label.localeCompare(b.label));
+  });
+
+  // bundle edges per item between columns
+  const bundled: GraphEdge[] = [];
+  const bundleKey = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
+  const temp = new Map<string, GraphEdge>();
+  edgeList.forEach((e) => {
+    const key = bundleKey(e);
+    const existing = temp.get(key);
+    if (existing) {
+      existing.perMinute += e.perMinute;
+    } else {
+      temp.set(key, { ...e });
+    }
+  });
+  temp.forEach((v) => bundled.push(v));
+
+  return { nodes, edges: bundled, columns, minDepth, maxDepth };
 }
 
-const CARD_WIDTH = 220;
-const CARD_HEIGHT = 120;
+const CARD_WIDTH = 240;
+const CARD_HEIGHT = 130;
 
 function ProductionGraph({
   root,
@@ -208,98 +272,242 @@ function ProductionGraph({
   root: RequirementNode;
   machineLabel: (id?: string | null) => string;
 }) {
-  const { nodes, edges, minDepth, maxDepth } = useMemo(() => buildGraphData(root, machineLabel), [root, machineLabel]);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
+  const [collapse, setCollapse] = useState(false);
+  const [focusItem, setFocusItem] = useState('');
 
-  const depthGroups = useMemo(() => {
-    const groups: Record<number, GraphNode[]> = {};
+  const { nodes, edges, minDepth, maxDepth } = useMemo(
+    () => buildGraphData(root, machineLabel, root.itemId),
+    [root, machineLabel],
+  );
+
+  const normalizedColumns = useMemo(() => {
+    const offsetDepth = -minDepth;
+    const cols: Record<number, GraphNode[]> = {};
     nodes.forEach((n) => {
-      const col = n.depth;
-      groups[col] ??= [];
-      groups[col].push(n);
+      const col = n.depth + offsetDepth;
+      cols[col] ??= [];
+      cols[col].push(n);
     });
-    Object.values(groups).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-    return groups;
-  }, [nodes]);
-
-  const normalizedGroups = useMemo(() => {
-    const offset = -minDepth;
-    const normalized: Record<number, GraphNode[]> = {};
-    Object.entries(depthGroups).forEach(([depthStr, list]) => {
-      const depth = Number(depthStr);
-      normalized[depth + offset] = list;
-    });
-    return normalized;
-  }, [depthGroups, minDepth]);
+    Object.values(cols).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
+    return cols;
+  }, [minDepth, nodes]);
 
   const columnCount = maxDepth - minDepth + 1;
-  const maxRows = Math.max(...Object.values(normalizedGroups).map((g) => g.length));
-  const svgWidth = columnCount * (CARD_WIDTH + 80);
-  const svgHeight = (maxRows + 1) * (CARD_HEIGHT + 40);
 
-  const positions: Record<string, { x: number; y: number }> = {};
-  Object.entries(normalizedGroups).forEach(([colStr, list]) => {
+  const filteredNodes = useMemo(() => {
+    if (!collapse || focusItem) return nodes;
+    return nodes.filter((n) => n.stage === 'raw' || n.isTarget || n.stage === 'final' || n.depth === minDepth);
+  }, [collapse, focusItem, nodes, minDepth]);
+
+  const positions: Record<string, { x: number; y: number; col: number; row: number }> = {};
+  Object.entries(normalizedColumns).forEach(([colStr, list]) => {
     const col = Number(colStr);
     list.forEach((node, index) => {
       positions[node.id] = {
-        x: col * (CARD_WIDTH + 80) + 20,
-        y: index * (CARD_HEIGHT + 40) + 20,
+        x: col * (CARD_WIDTH + 100) + 40,
+        y: index * (CARD_HEIGHT + 50) + 40,
+        col,
+        row: index,
       };
     });
   });
 
+  const svgWidth = columnCount * (CARD_WIDTH + 100);
+  const svgHeight =
+    Math.max(
+      ...Object.values(normalizedColumns).map((g) => (g.length === 0 ? 0 : g.length * (CARD_HEIGHT + 50) + 40)),
+    ) + 100;
+  const columnStages: Record<number, GraphNode['stage']> = {};
+  Object.entries(normalizedColumns).forEach(([colStr, list]) => {
+    const stageCount: Record<GraphNode['stage'], number> = { raw: 0, smelting: 0, assembly: 0, final: 0 };
+    list.forEach((n) => {
+      stageCount[n.stage] = (stageCount[n.stage] ?? 0) + 1;
+    });
+    const dominant = (Object.entries(stageCount).sort((a, b) => b[1] - a[1])[0] ?? ['raw'])[0] as GraphNode['stage'];
+    columnStages[Number(colStr)] = dominant;
+  });
+
+  const bundledEdges = useMemo(() => {
+    const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
+    const map = new Map<string, GraphEdge>();
+    edges.forEach((e) => {
+      if (!positions[e.from] || !positions[e.to]) return;
+      const k = key(e);
+      const existing = map.get(k);
+      if (existing) {
+        existing.perMinute += e.perMinute;
+      } else {
+        map.set(k, { ...e });
+      }
+    });
+    return Array.from(map.values());
+  }, [edges, positions]);
+
+  const maxEdgeRate = Math.max(...bundledEdges.map((e) => e.perMinute), 1);
+  const stageOrder: GraphNode['stage'][] = ['raw', 'smelting', 'assembly', 'final'];
+
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-100">Production graph</h2>
-        <p className="text-xs text-slate-400">Flows left → right (raw to final)</p>
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-slate-100">Production graph</h2>
+          <p className="text-xs text-slate-400">Layered left → right (raw to target)</p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <button
+            type="button"
+            className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700"
+            onClick={() => {
+              setScale(1);
+              setOffset({ x: 0, y: 0 });
+            }}
+          >
+            Fit to graph
+          </button>
+          <label className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-slate-200">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-indigo-500"
+              checked={collapse}
+              onChange={(e) => setCollapse(e.target.checked)}
+            />
+            Collapse intermediates
+          </label>
+          <div className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-slate-200">
+            <span>Focus item</span>
+            <input
+              className="w-40 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-slate-100 text-xs"
+              placeholder="Item id or name"
+              value={focusItem}
+              onChange={(e) => setFocusItem(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
-      <div className="relative mt-4 overflow-auto" style={{ height: Math.min(svgHeight + 40, 640) }}>
-        <svg width={svgWidth} height={svgHeight} className="absolute left-0 top-0">
-          <defs>
-            <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L10,5 L0,10 z" fill="#818cf8" />
-            </marker>
-          </defs>
-          {edges.map((edge) => {
-            const from = positions[edge.from];
-            const to = positions[edge.to];
-            if (!from || !to) return null;
-            const startX = from.x + CARD_WIDTH;
-            const startY = from.y + CARD_HEIGHT / 2;
-            const endX = to.x;
-            const endY = to.y + CARD_HEIGHT / 2;
-            const midX = (startX + endX) / 2;
+      <div
+        className="relative mt-4 overflow-auto"
+        style={{ height: 640 }}
+        onWheel={(e) => {
+          e.preventDefault();
+          const delta = e.deltaY > 0 ? -0.1 : 0.1;
+          setScale((s) => Math.max(0.4, Math.min(2, s + delta)));
+        }}
+        onMouseDown={(e) => {
+          setIsPanning(true);
+          setLastPos({ x: e.clientX, y: e.clientY });
+        }}
+        onMouseUp={() => {
+          setIsPanning(false);
+          setLastPos(null);
+        }}
+        onMouseMove={(e) => {
+          if (!isPanning || !lastPos) return;
+          const dx = e.clientX - lastPos.x;
+          const dy = e.clientY - lastPos.y;
+          setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+          setLastPos({ x: e.clientX, y: e.clientY });
+        }}
+      >
+        <div
+          className="relative"
+          style={{
+            width: svgWidth,
+            height: svgHeight,
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          {Object.entries(normalizedColumns).map(([colStr]) => {
+            const col = Number(colStr);
+            const stage = columnStages[col];
+            const color = stage === 'final' ? 'bg-indigo-900/20' : stage === 'raw' ? 'bg-slate-900/30' : 'bg-slate-900/15';
             return (
-              <g key={`${edge.from}-${edge.to}-${edge.label}`}>
-                <path
-                  d={`M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`}
-                  fill="none"
-                  stroke="#818cf8"
-                  strokeWidth={2}
-                  markerEnd="url(#arrow)"
-                />
-                <text x={midX} y={(startY + endY) / 2 - 6} className="text-xs fill-indigo-200" textAnchor="middle">
-                  {edge.label}
-                </text>
-              </g>
+              <div
+                key={col}
+                className={classNames('absolute rounded-lg border border-slate-800/30', color)}
+                style={{
+                  left: col * (CARD_WIDTH + 100),
+                  top: 0,
+                  width: CARD_WIDTH + 100,
+                  height: svgHeight,
+                }}
+              >
+                <span className="absolute left-2 top-2 text-[10px] uppercase tracking-wide text-slate-500">{stage}</span>
+              </div>
             );
           })}
-        </svg>
-        {nodes.map((node) => {
-          const pos = positions[node.id];
-          return (
-            <div
-              key={node.id}
-              className="absolute w-[220px] rounded-lg border border-slate-800 bg-slate-900/80 p-3 shadow-lg shadow-slate-900/40"
-              style={{ left: pos.x, top: pos.y }}
-            >
-              <p className="text-sm font-semibold text-slate-50">{node.label}</p>
-              <p className="text-xs text-slate-400">{node.machine}</p>
-              <p className="text-xs text-slate-300 mt-1">Machines: {formatDisplay(node.machinesNeeded)}</p>
-              <p className="text-xs text-slate-300">Output: {formatDisplay(node.outputPerMin)} / min</p>
-            </div>
-          );
-        })}
+
+          <svg width={svgWidth} height={svgHeight} className="absolute left-0 top-0">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L10,5 L0,10 z" fill="#818cf8" />
+              </marker>
+            </defs>
+            {bundledEdges.map((edge) => {
+              const from = positions[edge.from];
+              const to = positions[edge.to];
+              if (!from || !to) return null;
+              const startX = from.x + CARD_WIDTH;
+              const startY = from.y + CARD_HEIGHT / 2;
+              const endX = to.x;
+              const endY = to.y + CARD_HEIGHT / 2;
+              const thickness = 1 + (edge.perMinute / maxEdgeRate) * 6;
+              const color = `rgba(129,140,248,${0.4 + Math.min(0.6, edge.perMinute / maxEdgeRate)})`;
+              const labelX = (startX + endX) / 2;
+              const labelY = (startY + endY) / 2 - 6;
+              return (
+                <g key={`${edge.from}-${edge.to}-${edge.itemId}`}>
+                  <line
+                    x1={startX}
+                    y1={startY}
+                    x2={endX}
+                    y2={endY}
+                    stroke={color}
+                    strokeWidth={thickness}
+                    markerEnd="url(#arrow)"
+                  />
+                  <text x={labelX} y={labelY} className="text-[11px] fill-indigo-100" textAnchor="middle">
+                    {`${edge.itemName} — ${formatEdgeRate(edge.perMinute)} / min`}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          {filteredNodes.map((node) => {
+            const pos = positions[node.id];
+            if (!pos) return null;
+            const borderColor = node.isTarget
+              ? 'border-indigo-400 shadow-indigo-500/40'
+              : node.stage === 'raw'
+                ? 'border-slate-700'
+                : 'border-slate-800';
+            const muted = focusItem
+              ? !node.label.toLowerCase().includes(focusItem.toLowerCase()) &&
+                !node.machine.toLowerCase().includes(focusItem.toLowerCase())
+              : false;
+            return (
+              <div
+                key={node.id}
+                className={classNames(
+                  'absolute w-[240px] rounded-lg border bg-slate-900/90 p-3 shadow-lg shadow-slate-900/40 transition-opacity',
+                  borderColor,
+                  muted && 'opacity-40',
+                )}
+                style={{ left: pos.x, top: pos.y }}
+              >
+                <p className="text-sm font-semibold text-slate-50">{node.label}</p>
+                <hr className="my-2 border-slate-800" />
+                <p className="text-xs text-slate-300">Machine: {node.machine}</p>
+                <p className="text-xs text-slate-300">Machines: {formatDisplay(node.machinesNeeded)}</p>
+                <p className="text-xs text-slate-300">Output: {formatDisplay(node.outputPerMin)} / min</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

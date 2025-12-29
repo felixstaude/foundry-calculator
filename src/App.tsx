@@ -359,98 +359,103 @@ function ProductionGraph({
     [root, machineLabel],
   );
 
-  const offsetDepth = -minDepth;
-  const columns: Record<number, GraphNode[]> = {};
-  graphNodes.forEach((n) => {
-    const col = n.depth + offsetDepth;
-    columns[col] ??= [];
-    columns[col].push(n);
-  });
-  Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-
-  const positions: Record<string, { x: number; y: number }> = {};
-  Object.entries(columns).forEach(([colStr, list]) => {
-    const col = Number(colStr);
-    list.forEach((node, index) => {
-      positions[node.id] = {
-        x: col * (CARD_WIDTH + 120) + 40,
-        y: index * (CARD_HEIGHT + 60) + 40,
-      };
-    });
-  });
-
-  const width = (maxDepth - minDepth + 1) * (CARD_WIDTH + 120) + 200;
-  const height = Math.max(...Object.values(columns).map((g) => g.length * (CARD_HEIGHT + 60) + 80), 400);
-
-  // bundle edges and add offsets for parallels
-  const bundled: GraphEdge[] = [];
-  const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
-  const temp = new Map<string, GraphEdge>();
-  graphEdges.forEach((e) => {
-    const k = key(e);
-    const existing = temp.get(k);
-    if (existing) {
-      existing.perMinute += e.perMinute;
-    } else {
-      temp.set(k, { ...e });
-    }
-  });
-  temp.forEach((v) => bundled.push(v));
-
-  const bySource: Record<string, GraphEdge[]> = {};
-  bundled.forEach((e) => {
-    bySource[e.from] ??= [];
-    bySource[e.from].push(e);
-  });
-  Object.values(bySource).forEach((list) => list.sort((a, b) => a.itemName.localeCompare(b.itemName)));
-
-  const maxRate = Math.max(...bundled.map((e) => e.perMinute), 1);
-  const rfNodes = graphNodes.map((n) => ({
-    id: n.id,
-    position: positions[n.id],
-    data: n,
-    type: 'cardNode',
-    draggable: false,
-    selectable: false,
-  }));
-
   const lanePalette = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#38bdf8', '#c084fc'];
 
-  const rfEdges = bundled.map((e) => {
-    const siblings = bySource[e.from] ?? [];
-    const idx = siblings.findIndex((s) => s.to === e.to && s.itemId === e.itemId);
-    const offset = (idx - (siblings.length - 1) / 2) * 8;
-    const lane = positions[e.from]?.x ?? 0;
-    const laneIndex = Math.abs(Math.floor(lane / (CARD_WIDTH + 120))) % lanePalette.length;
-    const color = lanePalette[laneIndex] ?? '#818cf8';
-    const widthScale = Math.max(2.5, Math.sqrt(e.perMinute / maxRate) * 10);
-    return {
-      id: `${e.from}-${e.to}-${e.itemId}`,
-      source: e.from,
-      target: e.to,
-      type: 'flowEdge',
-      data: {
-        label: `${e.itemName} — ${formatEdgeRate(e.perMinute)} / min`,
-        hoverLabel: `${e.itemName}: ${formatDisplay(e.perMinute)} / min`,
-        color,
-        width: widthScale,
-        offset,
-      },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color,
-      },
-      style: {
-        strokeWidth: widthScale,
-        stroke: color,
-      },
-      sourceHandle: 'out',
-      targetHandle: 'in',
-    };
-  });
+  const computeLayout = () => {
+    const offsetDepth = -minDepth;
+    const columns: Record<number, GraphNode[]> = {};
+    graphNodes.forEach((n) => {
+      const col = n.depth + offsetDepth;
+      columns[col] ??= [];
+      columns[col].push(n);
+    });
+    Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
 
-  const [nodes, , onNodesChange] = useNodesState(rfNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(rfEdges);
+    const positions: Record<string, { x: number; y: number; lane: number }> = {};
+    Object.entries(columns).forEach(([colStr, list]) => {
+      const col = Number(colStr);
+      list.forEach((node, index) => {
+        positions[node.id] = {
+          x: col * (CARD_WIDTH + 120) + 40,
+          y: index * (CARD_HEIGHT + 60) + 40,
+          lane: col,
+        };
+      });
+    });
+
+    // bundle edges and add offsets for parallels
+    const bundled: GraphEdge[] = [];
+    const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
+    const temp = new Map<string, GraphEdge>();
+    graphEdges.forEach((e) => {
+      const k = key(e);
+      const existing = temp.get(k);
+      if (existing) {
+        existing.perMinute += e.perMinute;
+      } else {
+        temp.set(k, { ...e });
+      }
+    });
+    temp.forEach((v) => bundled.push(v));
+
+    const bySource: Record<string, GraphEdge[]> = {};
+    bundled.forEach((e) => {
+      bySource[e.from] ??= [];
+      bySource[e.from].push(e);
+    });
+    Object.values(bySource).forEach((list) => list.sort((a, b) => a.itemName.localeCompare(b.itemName)));
+
+    const maxRate = Math.max(...bundled.map((e) => e.perMinute), 1);
+
+    const rfNodes = graphNodes.map((n) => ({
+      id: n.id,
+      position: positions[n.id],
+      data: n,
+      type: 'cardNode',
+      draggable: true,
+      selectable: false,
+    }));
+
+    const rfEdges = bundled.map((e) => {
+      const siblings = bySource[e.from] ?? [];
+      const idx = siblings.findIndex((s) => s.to === e.to && s.itemId === e.itemId);
+      const offset = (idx - (siblings.length - 1) / 2) * 8;
+      const lane = positions[e.from]?.lane ?? 0;
+      const laneIndex = Math.abs(lane) % lanePalette.length;
+      const color = lanePalette[laneIndex] ?? '#818cf8';
+      const widthScale = Math.max(2.5, Math.sqrt(e.perMinute / maxRate) * 10);
+      return {
+        id: `${e.from}-${e.to}-${e.itemId}`,
+        source: e.from,
+        target: e.to,
+        type: 'flowEdge',
+        data: {
+          label: `${e.itemName} — ${formatEdgeRate(e.perMinute)} / min`,
+          hoverLabel: `${e.itemName}: ${formatDisplay(e.perMinute)} / min`,
+          color,
+          width: widthScale,
+          offset,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color,
+        },
+        style: {
+          strokeWidth: widthScale,
+          stroke: color,
+        },
+        sourceHandle: 'out',
+        targetHandle: 'in',
+      };
+    });
+
+    return { rfNodes, rfEdges };
+  };
+
+  const initialLayout = useMemo(() => computeLayout(), [graphNodes, graphEdges, minDepth, maxDepth]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialLayout.rfNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialLayout.rfEdges);
 
   const nodeTypes = useMemo(() => ({ cardNode: CardNode }), []);
   const edgeTypes = useMemo(() => ({ flowEdge: FlowEdge }), []);
@@ -461,6 +466,19 @@ function ProductionGraph({
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-slate-100">Production graph</h2>
           <p className="text-xs text-slate-400">Curved flows with throughput-based widths</p>
+        </div>
+        <div className="flex gap-2 text-xs">
+          <button
+            type="button"
+            className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700"
+            onClick={() => {
+              const layout = computeLayout();
+              setNodes(layout.rfNodes);
+              setEdges(layout.rfEdges);
+            }}
+          >
+            Auto layout
+          </button>
         </div>
       </div>
       <div className="mt-4 h-[640px] w-full">
@@ -475,7 +493,7 @@ function ProductionGraph({
           zoomOnPinch
           panOnScroll
           panOnDrag
-          nodesDraggable={false}
+          nodesDraggable
           nodesConnectable={false}
           elementsSelectable={false}
           style={{ background: 'transparent' }}

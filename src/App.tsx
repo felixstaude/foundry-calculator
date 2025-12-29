@@ -4,6 +4,9 @@ import ReactFlow, {
   Controls,
   MarkerType,
   getBezierPath,
+  Position,
+  Handle,
+  useStoreApi,
   useEdgesState,
   useNodesState,
   type EdgeProps,
@@ -58,6 +61,8 @@ type FlowEdgeData = {
   color: string;
   width: number;
   hoverLabel: string;
+  offset?: number;
+  hovering?: boolean;
 };
 
 function SearchableSelect({
@@ -296,6 +301,8 @@ function CardNode({ data }: NodeProps<GraphNode>) {
   const borderColor = data.isTarget ? 'border-indigo-400 shadow-indigo-500/40' : data.stage === 'raw' ? 'border-slate-700' : 'border-slate-800';
   return (
     <div className={classNames('w-[240px] rounded-lg border bg-slate-900/90 p-3 shadow-lg shadow-slate-900/40', borderColor)}>
+      <Handle type="target" position={Position.Left} id="in" style={{ visibility: 'hidden' }} />
+      <Handle type="source" position={Position.Right} id="out" style={{ visibility: 'hidden' }} />
       <p className="text-sm font-semibold text-slate-50">{data.label}</p>
       <hr className="my-2 border-slate-800" />
       <p className="text-xs text-slate-300">Machine: {data.machine}</p>
@@ -305,7 +312,7 @@ function CardNode({ data }: NodeProps<GraphNode>) {
   );
 }
 
-function FlowEdge({ id, sourceX, sourceY, targetX, targetY, data, markerEnd }: EdgeProps<FlowEdgeData>) {
+function FlowEdge({ id, sourceX, sourceY, targetX, targetY, data, markerEnd, sourcePosition, targetPosition }: EdgeProps<FlowEdgeData>) {
   const offset = (data as any)?.offset ?? 0;
   const sy = sourceY + offset;
   const ty = targetY + offset;
@@ -314,11 +321,22 @@ function FlowEdge({ id, sourceX, sourceY, targetX, targetY, data, markerEnd }: E
     sourceY: sy,
     targetX,
     targetY: ty,
+    sourcePosition,
+    targetPosition,
     curvature: 0.25,
   });
   return (
     <>
-      <path id={id} d={edgePath} fill="none" stroke={data?.color ?? '#818cf8'} strokeWidth={data?.width ?? 2} markerEnd={markerEnd} />
+      <path
+        id={id}
+        d={edgePath}
+        fill="none"
+        stroke={data?.color ?? '#818cf8'}
+        strokeWidth={(data?.width ?? 2) + (data?.hovering ? 1.5 : 0)}
+        markerEnd={markerEnd}
+        style={{ opacity: data?.hovering ? 1 : 0.9 }}
+        className="transition-all duration-150"
+      />
       <text dy="-4" x={labelX} y={labelY} className="text-[10px] fill-indigo-100">
         <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">
           {data?.label}
@@ -396,12 +414,16 @@ function ProductionGraph({
     selectable: false,
   }));
 
+  const lanePalette = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#38bdf8', '#c084fc'];
+
   const rfEdges = bundled.map((e) => {
     const siblings = bySource[e.from] ?? [];
     const idx = siblings.findIndex((s) => s.to === e.to && s.itemId === e.itemId);
     const offset = (idx - (siblings.length - 1) / 2) * 8;
-    const color = hashColor(e.itemId);
-    const widthScale = Math.max(2, (e.perMinute / maxRate) * 12);
+    const lane = positions[e.from]?.x ?? 0;
+    const laneIndex = Math.abs(Math.floor(lane / (CARD_WIDTH + 120))) % lanePalette.length;
+    const color = lanePalette[laneIndex] ?? '#818cf8';
+    const widthScale = Math.max(2.5, Math.sqrt(e.perMinute / maxRate) * 10);
     return {
       id: `${e.from}-${e.to}-${e.itemId}`,
       source: e.from,
@@ -422,13 +444,13 @@ function ProductionGraph({
         strokeWidth: widthScale,
         stroke: color,
       },
-      sourceHandle: `s-${offset}`,
-      targetHandle: `t-${offset}`,
+      sourceHandle: 'out',
+      targetHandle: 'in',
     };
   });
 
   const [nodes, , onNodesChange] = useNodesState(rfNodes);
-  const [edges, , onEdgesChange] = useEdgesState(rfEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(rfEdges);
 
   const nodeTypes = useMemo(() => ({ cardNode: CardNode }), []);
   const edgeTypes = useMemo(() => ({ flowEdge: FlowEdge }), []);

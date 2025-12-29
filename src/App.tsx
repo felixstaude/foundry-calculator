@@ -396,14 +396,14 @@ function ProductionGraph({
   const loadElk = useCallback(async () => {
     if (elkRef.current) return elkRef.current;
     const candidates = [
-      () => import('elkjs/lib/elk.bundled.js'),
-      () => import('elkjs'),
-      () => import('@elkjs/elkjs/lib/elk.bundled.js'),
-      () => import('@elkjs/elkjs'),
+      'elkjs/lib/elk.bundled.js',
+      'elkjs',
+      '@elkjs/elkjs/lib/elk.bundled.js',
+      '@elkjs/elkjs',
     ];
-    for (const loader of candidates) {
+    for (const path of candidates) {
       try {
-        const mod = await loader();
+        const mod = await import(/* @vite-ignore */ path);
         const ElkCtor = (mod as any).default || (mod as any).ELK || mod;
         elkRef.current = new ElkCtor();
         return elkRef.current;
@@ -416,10 +416,10 @@ function ProductionGraph({
 
   const loadToPng = useCallback(async () => {
     if (toPngRef.current) return toPngRef.current;
-    const candidates = [() => import('html-to-image'), () => import('html-to-image/index')];
-    for (const loader of candidates) {
+    const candidates = ['html-to-image', 'html-to-image/index'];
+    for (const path of candidates) {
       try {
-        const mod = await loader();
+        const mod = await import(/* @vite-ignore */ path);
         toPngRef.current = (mod as any).toPng;
         return toPngRef.current;
       } catch (e) {

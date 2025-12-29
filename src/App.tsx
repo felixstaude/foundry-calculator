@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ELK from 'elkjs';
+import ELK from 'elkjs/lib/elk.bundled.js';
 import ReactFlow, {
   Background,
   Controls,

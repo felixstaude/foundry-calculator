@@ -3,6 +3,6 @@
   "source": "wiki.foundry-game.com",
   "recipes": 202,
   "itemsFromRecipes": 204,
-  "machines": 8
+  "machines": 8,
   "gameVersion": "0.6.0.23789"
 }

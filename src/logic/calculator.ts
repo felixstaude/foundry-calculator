@@ -29,6 +29,7 @@ export type RequirementEdge = {
 export type CalculationOptions = {
   roundUpMachines: boolean;
   selection: RecipeSelection;
+  machineSpeedMultipliers?: Record<string, number>;
 };
 
 export type CalculationResult = {
@@ -105,7 +106,8 @@ export function buildCalculation(
     let craftsPerMinActual = craftsPerMinNeeded;
 
     if (baseTime !== undefined && baseTime !== null) {
-      const craftsPerMinPerMachine = 60 / baseTime;
+      const speedMultiplier = craftedIn ? options.machineSpeedMultipliers?.[craftedIn] ?? 1 : 1;
+      const craftsPerMinPerMachine = (60 / baseTime) * speedMultiplier;
       machinesNeeded = craftsPerMinNeeded / craftsPerMinPerMachine;
       if (options.roundUpMachines) {
         machinesNeeded = Math.ceil(machinesNeeded);

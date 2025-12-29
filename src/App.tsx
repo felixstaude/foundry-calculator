@@ -43,6 +43,19 @@ function formatEdgeRate(value: number) {
 
 type Option = { value: string; label: string };
 
+type MachineOption = { id: string; label: string; speedMultiplier?: number };
+
+const customMachineOptions: Record<string, MachineOption[]> = {
+  assembler: [
+    { id: 'assembler_t1', label: 'Assembler I (1.0x)', speedMultiplier: 1 },
+    { id: 'assembler_t2', label: 'Assembler II (1.5x)', speedMultiplier: 1.5 },
+    { id: 'assembler_t3', label: 'Assembler III (2.0x)', speedMultiplier: 2 },
+  ],
+};
+
+const findCustomMachineOption = (familyId: string, optionId?: string) =>
+  customMachineOptions[familyId]?.find((opt) => opt.id === optionId);
+
 type GraphNode = {
   id: string;
   label: string;
@@ -148,9 +161,11 @@ function WarningList({ warnings }: { warnings: string[] }) {
 function MachineSelector({
   machineChoices,
   onChange,
+  customOptions,
 }: {
   machineChoices: Record<string, string>;
   onChange: (familyId: string, machineId?: string) => void;
+  customOptions: Record<string, MachineOption[]>;
 }) {
   const families = useMemo(() => {
     const craftedFamilies = new Set<string>();
@@ -162,7 +177,10 @@ function MachineSelector({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, []);
 
-  const options = Object.values(dataBundle.machines).sort((a, b) => a.name.localeCompare(b.name));
+  const baseOptions: MachineOption[] = useMemo(
+    () => Object.values(dataBundle.machines).map((m) => ({ id: m.id, label: m.name })).sort((a, b) => a.label.localeCompare(b.label)),
+    [],
+  );
 
   if (families.length === 0) return null;
 
@@ -170,27 +188,30 @@ function MachineSelector({
     <details className="card space-y-3 p-4">
       <summary className="cursor-pointer text-sm font-semibold text-slate-100">Machine tier preferences</summary>
       <p className="text-sm text-slate-300">
-        Choose which machine tier/type to display for each crafting family (e.g., assembler, smelter). This does not
-        change speed in the current data set but helps plan which tier you want to build.
+        Choose which machine tier/type to display for each crafting family (e.g., assembler, smelter). Assembler tiers
+        include speed multipliers (1.0x, 1.5x, 2.0x).
       </p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {families.map((family) => (
-          <div key={family.id} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
-            <p className="text-sm font-semibold text-slate-100">{family.label}</p>
-            <select
-              className="input"
-              value={machineChoices[family.id] ?? ''}
-              onChange={(e) => onChange(family.id, e.target.value || undefined)}
-            >
-              <option value="">Default ({family.label})</option>
-              {options.map((machine) => (
-                <option key={machine.id} value={machine.id}>
-                  {machine.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
+        {families.map((family) => {
+          const combinedOptions = [...(customOptions[family.id] ?? []), ...baseOptions];
+          return (
+            <div key={family.id} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
+              <p className="text-sm font-semibold text-slate-100">{family.label}</p>
+              <select
+                className="input"
+                value={machineChoices[family.id] ?? ''}
+                onChange={(e) => onChange(family.id, e.target.value || undefined)}
+              >
+                <option value="">Default ({family.label})</option>
+                {combinedOptions.map((machine) => (
+                  <option key={`${family.id}-${machine.id}`} value={machine.id}>
+                    {machine.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          );
+        })}
       </div>
     </details>
   );
@@ -816,6 +837,17 @@ function App() {
     [recipeOverrides, tierPreferences],
   );
 
+  const machineSpeedMultipliers = useMemo(() => {
+    const map: Record<string, number> = {};
+    Object.entries(machineChoices).forEach(([familyId, optionId]) => {
+      const custom = findCustomMachineOption(familyId, optionId);
+      if (custom?.speedMultiplier !== undefined) {
+        map[familyId] = custom.speedMultiplier;
+      }
+    });
+    return map;
+  }, [machineChoices]);
+
   const activeVariants = useMemo(() => {
     if (!selectedItemId) return undefined;
     const producersForItem = producers[selectedItemId] ?? [];
@@ -830,8 +862,9 @@ function App() {
     return buildCalculation(selectedItemId, desiredRate, dataBundle, producers, {
       roundUpMachines,
       selection,
+      machineSpeedMultipliers,
     });
-  }, [desiredRate, roundUpMachines, selectedItemId, selection]);
+  }, [desiredRate, machineSpeedMultipliers, roundUpMachines, selectedItemId, selection]);
 
   const variantOptions: Option[] | undefined = useMemo(() => {
     if (!activeVariants) return undefined;
@@ -874,8 +907,11 @@ function App() {
 
   const machineLabel = (craftedIn?: string | null) => {
     if (!craftedIn) return 'Unknown machine';
-    const chosen = machineChoices[craftedIn] ?? craftedIn;
-    return dataBundle.machines[chosen]?.name ?? chosen;
+    const choiceId = machineChoices[craftedIn];
+    const custom = findCustomMachineOption(craftedIn, choiceId);
+    if (custom) return custom.label;
+    if (choiceId) return dataBundle.machines[choiceId]?.name ?? choiceId;
+    return dataBundle.machines[craftedIn]?.name ?? craftedIn;
   };
 
   const version = dataBundle.version.version ?? 'unknown';
@@ -955,6 +991,7 @@ function App() {
         <div className="space-y-3">
           <MachineSelector
             machineChoices={machineChoices}
+            customOptions={customMachineOptions}
             onChange={(familyId, machineId) =>
               setMachineChoices((prev) => {
                 const next = { ...prev };

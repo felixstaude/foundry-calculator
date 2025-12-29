@@ -37,4 +37,20 @@ describe('buildCalculation', () => {
     expect(result.root?.warnings.some((w) => w.includes('baseTimeSec missing'))).toBe(true);
     expect(result.totals['xenoferrite_ore_rubble']).toBeCloseTo(20);
   });
+
+  it('adjusts machine counts based on machine speed multipliers', () => {
+    const baseline = buildCalculation('advanced_machinery_parts', 600, dataBundle, producers, {
+      roundUpMachines: false,
+      selection: { overrides: {}, tierPreferences: {} },
+    });
+
+    const spedUp = buildCalculation('advanced_machinery_parts', 600, dataBundle, producers, {
+      roundUpMachines: false,
+      selection: { overrides: {}, tierPreferences: {} },
+      machineSpeedMultipliers: { assembler: 2 },
+    });
+
+    expect(baseline.root?.machinesNeeded).toBeCloseTo(2);
+    expect(spedUp.root?.machinesNeeded).toBeCloseTo(1);
+  });
 });

@@ -108,7 +108,7 @@ export function buildCalculation(
       const craftsPerMinPerMachine = 60 / baseTime;
       machinesNeeded = craftsPerMinNeeded / craftsPerMinPerMachine;
       if (options.roundUpMachines) {
-        machinesNeeded = Math.ceil(machinesNeeded * 1000) / 1000;
+        machinesNeeded = Math.ceil(machinesNeeded);
       }
       craftsPerMinActual = (machinesNeeded ?? 0) * craftsPerMinPerMachine;
       actualOutputPerMin = craftsPerMinActual * outputAmount;
@@ -123,7 +123,6 @@ export function buildCalculation(
     const edges: RequirementEdge[] = Object.entries(inputs).map(([inputId, amount]) => {
       const inputName = data.items[inputId]?.name ?? inputId;
       const perMinute = craftsPerMinActual * amount;
-      totals[inputId] = (totals[inputId] ?? 0) + perMinute;
       return { itemId: inputId, itemName: inputName, perMinute };
     });
 

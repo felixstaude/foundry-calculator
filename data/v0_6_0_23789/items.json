@@ -1,0 +1,818 @@
+{
+  "machinery_parts": {
+    "id": "machinery_parts",
+    "name": "machinery parts"
+  },
+  "steel_beams": {
+    "id": "steel_beams",
+    "name": "steel beams"
+  },
+  "advanced_machinery_parts": {
+    "id": "advanced_machinery_parts",
+    "name": "advanced machinery parts"
+  },
+  "circuit_board": {
+    "id": "circuit_board",
+    "name": "circuit board"
+  },
+  "advanced_smelter": {
+    "id": "advanced_smelter",
+    "name": "advanced smelter"
+  },
+  "xenoferrite_ore": {
+    "id": "xenoferrite_ore",
+    "name": "xenoferrite ore"
+  },
+  "ignium_ore": {
+    "id": "ignium_ore",
+    "name": "ignium ore"
+  },
+  "advanced_xenoferrite_ignium_ore_blend": {
+    "id": "advanced_xenoferrite_ignium_ore_blend",
+    "name": "advanced xenoferrite ignium ore blend"
+  },
+  "xenoferrite_plates": {
+    "id": "xenoferrite_plates",
+    "name": "xenoferrite plates"
+  },
+  "air_intake_base": {
+    "id": "air_intake_base",
+    "name": "air intake base"
+  },
+  "electronic_components": {
+    "id": "electronic_components",
+    "name": "electronic components"
+  },
+  "assembler_i": {
+    "id": "assembler_i",
+    "name": "assembler i"
+  },
+  "assembler_ii": {
+    "id": "assembler_ii",
+    "name": "assembler ii"
+  },
+  "firmarlite_sheet": {
+    "id": "firmarlite_sheet",
+    "name": "firmarlite sheet"
+  },
+  "assembler_iii": {
+    "id": "assembler_iii",
+    "name": "assembler iii"
+  },
+  "assembly_line_merger": {
+    "id": "assembly_line_merger",
+    "name": "assembly line merger"
+  },
+  "hydraulic_piston": {
+    "id": "hydraulic_piston",
+    "name": "hydraulic piston"
+  },
+  "assembly_line_painter": {
+    "id": "assembly_line_painter",
+    "name": "assembly line painter"
+  },
+  "assembly_line_producer": {
+    "id": "assembly_line_producer",
+    "name": "assembly line producer"
+  },
+  "assembly_line_rail": {
+    "id": "assembly_line_rail",
+    "name": "assembly line rail"
+  },
+  "assembly_line_splitter": {
+    "id": "assembly_line_splitter",
+    "name": "assembly line splitter"
+  },
+  "assembly_line_start": {
+    "id": "assembly_line_start",
+    "name": "assembly line start"
+  },
+  "energy_cell": {
+    "id": "energy_cell",
+    "name": "energy cell"
+  },
+  "battery_large": {
+    "id": "battery_large",
+    "name": "battery large"
+  },
+  "technum_rods": {
+    "id": "technum_rods",
+    "name": "technum rods"
+  },
+  "battery_small": {
+    "id": "battery_small",
+    "name": "battery small"
+  },
+  "biomass": {
+    "id": "biomass",
+    "name": "biomass"
+  },
+  "mineral_rocks": {
+    "id": "mineral_rocks",
+    "name": "mineral rocks"
+  },
+  "water": {
+    "id": "water",
+    "name": "water"
+  },
+  "biomass_burner": {
+    "id": "biomass_burner",
+    "name": "biomass burner"
+  },
+  "concrete": {
+    "id": "concrete",
+    "name": "concrete"
+  },
+  "blast_furnace_base": {
+    "id": "blast_furnace_base",
+    "name": "blast furnace base"
+  },
+  "pipe": {
+    "id": "pipe",
+    "name": "pipe"
+  },
+  "boiler": {
+    "id": "boiler",
+    "name": "boiler"
+  },
+  "building_block": {
+    "id": "building_block",
+    "name": "building block"
+  },
+  "burner_generator": {
+    "id": "burner_generator",
+    "name": "burner generator"
+  },
+  "telluxite_wafer": {
+    "id": "telluxite_wafer",
+    "name": "telluxite wafer"
+  },
+  "polymer_board": {
+    "id": "polymer_board",
+    "name": "polymer board"
+  },
+  "olumic_acid": {
+    "id": "olumic_acid",
+    "name": "olumic acid"
+  },
+  "cpu": {
+    "id": "cpu",
+    "name": "cpu"
+  },
+  "glass": {
+    "id": "glass",
+    "name": "glass"
+  },
+  "cargo_ship_start_pad": {
+    "id": "cargo_ship_start_pad",
+    "name": "cargo ship start pad"
+  },
+  "cargo_ship_target_pad": {
+    "id": "cargo_ship_target_pad",
+    "name": "cargo ship target pad"
+  },
+  "casting_machine": {
+    "id": "casting_machine",
+    "name": "casting machine"
+  },
+  "ceiling_light_i": {
+    "id": "ceiling_light_i",
+    "name": "ceiling light i"
+  },
+  "xenoferrite_ore_rubble": {
+    "id": "xenoferrite_ore_rubble",
+    "name": "xenoferrite ore rubble"
+  },
+  "cement": {
+    "id": "cement",
+    "name": "cement"
+  },
+  "blast_furnace_slag": {
+    "id": "blast_furnace_slag",
+    "name": "blast furnace slag"
+  },
+  "chemical_processor": {
+    "id": "chemical_processor",
+    "name": "chemical processor"
+  },
+  "coked_ignium": {
+    "id": "coked_ignium",
+    "name": "coked ignium"
+  },
+  "gravel": {
+    "id": "gravel",
+    "name": "gravel"
+  },
+  "construction_material": {
+    "id": "construction_material",
+    "name": "construction material"
+  },
+  "maintenance_drone": {
+    "id": "maintenance_drone",
+    "name": "maintenance drone"
+  },
+  "construction_ship_port": {
+    "id": "construction_ship_port",
+    "name": "construction ship port"
+  },
+  "construction_warehouse": {
+    "id": "construction_warehouse",
+    "name": "construction warehouse"
+  },
+  "container": {
+    "id": "container",
+    "name": "container"
+  },
+  "conveyor_i": {
+    "id": "conveyor_i",
+    "name": "conveyor i"
+  },
+  "conveyor_balancer_i": {
+    "id": "conveyor_balancer_i",
+    "name": "conveyor balancer i"
+  },
+  "conveyor_balancer_ii": {
+    "id": "conveyor_balancer_ii",
+    "name": "conveyor balancer ii"
+  },
+  "conveyor_balancer_iii": {
+    "id": "conveyor_balancer_iii",
+    "name": "conveyor balancer iii"
+  },
+  "conveyor_ii": {
+    "id": "conveyor_ii",
+    "name": "conveyor ii"
+  },
+  "conveyor_iii": {
+    "id": "conveyor_iii",
+    "name": "conveyor iii"
+  },
+  "conveyor_slope_i": {
+    "id": "conveyor_slope_i",
+    "name": "conveyor slope i"
+  },
+  "conveyor_slope_ii": {
+    "id": "conveyor_slope_ii",
+    "name": "conveyor slope ii"
+  },
+  "conveyor_slope_iii": {
+    "id": "conveyor_slope_iii",
+    "name": "conveyor slope iii"
+  },
+  "crate": {
+    "id": "crate",
+    "name": "crate"
+  },
+  "crusher_i": {
+    "id": "crusher_i",
+    "name": "crusher i"
+  },
+  "crusher_ii": {
+    "id": "crusher_ii",
+    "name": "crusher ii"
+  },
+  "decor_basic_shapes": {
+    "id": "decor_basic_shapes",
+    "name": "decor basic shapes"
+  },
+  "decor_misc": {
+    "id": "decor_misc",
+    "name": "decor misc"
+  },
+  "decor_modular_windows": {
+    "id": "decor_modular_windows",
+    "name": "decor modular windows"
+  },
+  "decor_struts": {
+    "id": "decor_struts",
+    "name": "decor struts"
+  },
+  "decor_support": {
+    "id": "decor_support",
+    "name": "decor support"
+  },
+  "decor_walls": {
+    "id": "decor_walls",
+    "name": "decor walls"
+  },
+  "decor_windows": {
+    "id": "decor_windows",
+    "name": "decor windows"
+  },
+  "distillation_column": {
+    "id": "distillation_column",
+    "name": "distillation column"
+  },
+  "door_double": {
+    "id": "door_double",
+    "name": "door double"
+  },
+  "door_single": {
+    "id": "door_single",
+    "name": "door single"
+  },
+  "drone_miner_i": {
+    "id": "drone_miner_i",
+    "name": "drone miner i"
+  },
+  "drone_miner_ii": {
+    "id": "drone_miner_ii",
+    "name": "drone miner ii"
+  },
+  "electric_arc_furnace": {
+    "id": "electric_arc_furnace",
+    "name": "electric arc furnace"
+  },
+  "wire_coil": {
+    "id": "wire_coil",
+    "name": "wire coil"
+  },
+  "elevator": {
+    "id": "elevator",
+    "name": "elevator"
+  },
+  "emergency_beacon": {
+    "id": "emergency_beacon",
+    "name": "emergency beacon"
+  },
+  "executive_office_chair": {
+    "id": "executive_office_chair",
+    "name": "executive office chair"
+  },
+  "executive_office_couch": {
+    "id": "executive_office_couch",
+    "name": "executive office couch"
+  },
+  "executive_office_desk": {
+    "id": "executive_office_desk",
+    "name": "executive office desk"
+  },
+  "executive_office_file_cabinet": {
+    "id": "executive_office_file_cabinet",
+    "name": "executive office file cabinet"
+  },
+  "executive_office_plant": {
+    "id": "executive_office_plant",
+    "name": "executive office plant"
+  },
+  "executive_office_table": {
+    "id": "executive_office_table",
+    "name": "executive office table"
+  },
+  "explosives": {
+    "id": "explosives",
+    "name": "explosives"
+  },
+  "explosive_charge": {
+    "id": "explosive_charge",
+    "name": "explosive charge"
+  },
+  "ignium_powder": {
+    "id": "ignium_powder",
+    "name": "ignium powder"
+  },
+  "low_density_olumite": {
+    "id": "low_density_olumite",
+    "name": "low density olumite"
+  },
+  "ignium_ore_rubble": {
+    "id": "ignium_ore_rubble",
+    "name": "ignium ore rubble"
+  },
+  "technum_ore_rubble": {
+    "id": "technum_ore_rubble",
+    "name": "technum ore rubble"
+  },
+  "explosives_detonator": {
+    "id": "explosives_detonator",
+    "name": "explosives detonator"
+  },
+  "filter_loader": {
+    "id": "filter_loader",
+    "name": "filter loader"
+  },
+  "liquid_firmarlite": {
+    "id": "liquid_firmarlite",
+    "name": "liquid firmarlite"
+  },
+  "flare_stack": {
+    "id": "flare_stack",
+    "name": "flare stack"
+  },
+  "fluid_assembler_i": {
+    "id": "fluid_assembler_i",
+    "name": "fluid assembler i"
+  },
+  "forest_seed_plants": {
+    "id": "forest_seed_plants",
+    "name": "forest seed plants"
+  },
+  "forest_seed_trees": {
+    "id": "forest_seed_trees",
+    "name": "forest seed trees"
+  },
+  "air": {
+    "id": "air",
+    "name": "air"
+  },
+  "olumite_gas": {
+    "id": "olumite_gas",
+    "name": "olumite gas"
+  },
+  "fracking_liquid": {
+    "id": "fracking_liquid",
+    "name": "fracking liquid"
+  },
+  "fracking_tower_base": {
+    "id": "fracking_tower_base",
+    "name": "fracking tower base"
+  },
+  "freight_elevator_i": {
+    "id": "freight_elevator_i",
+    "name": "freight elevator i"
+  },
+  "freight_elevator_ii": {
+    "id": "freight_elevator_ii",
+    "name": "freight elevator ii"
+  },
+  "fuel_rod_casing": {
+    "id": "fuel_rod_casing",
+    "name": "fuel rod casing"
+  },
+  "greenhouse": {
+    "id": "greenhouse",
+    "name": "greenhouse"
+  },
+  "hangar_gate": {
+    "id": "hangar_gate",
+    "name": "hangar gate"
+  },
+  "hot_air_stove_base": {
+    "id": "hot_air_stove_base",
+    "name": "hot air stove base"
+  },
+  "liquid_fuel": {
+    "id": "liquid_fuel",
+    "name": "liquid fuel"
+  },
+  "ignium_fuel_rod": {
+    "id": "ignium_fuel_rod",
+    "name": "ignium fuel rod"
+  },
+  "incinerator": {
+    "id": "incinerator",
+    "name": "incinerator"
+  },
+  "jetpack_fuel": {
+    "id": "jetpack_fuel",
+    "name": "jetpack fuel"
+  },
+  "ladder": {
+    "id": "ladder",
+    "name": "ladder"
+  },
+  "firmarlite_bar": {
+    "id": "firmarlite_bar",
+    "name": "firmarlite bar"
+  },
+  "telluxite_ingot": {
+    "id": "telluxite_ingot",
+    "name": "telluxite ingot"
+  },
+  "liquid_telluxite": {
+    "id": "liquid_telluxite",
+    "name": "liquid telluxite"
+  },
+  "loader": {
+    "id": "loader",
+    "name": "loader"
+  },
+  "loader_2nd_lane": {
+    "id": "loader_2nd_lane",
+    "name": "loader 2nd lane"
+  },
+  "loader_3rd_lane": {
+    "id": "loader_3rd_lane",
+    "name": "loader 3rd lane"
+  },
+  "logistic_container_i": {
+    "id": "logistic_container_i",
+    "name": "logistic container i"
+  },
+  "logistic_container_ii": {
+    "id": "logistic_container_ii",
+    "name": "logistic container ii"
+  },
+  "logistic_container_iii": {
+    "id": "logistic_container_iii",
+    "name": "logistic container iii"
+  },
+  "long_range_scanner": {
+    "id": "long_range_scanner",
+    "name": "long range scanner"
+  },
+  "crude_olumite": {
+    "id": "crude_olumite",
+    "name": "crude olumite"
+  },
+  "marble_black": {
+    "id": "marble_black",
+    "name": "marble black"
+  },
+  "marble_white": {
+    "id": "marble_white",
+    "name": "marble white"
+  },
+  "mining_drill": {
+    "id": "mining_drill",
+    "name": "mining drill"
+  },
+  "mining_laser": {
+    "id": "mining_laser",
+    "name": "mining laser"
+  },
+  "modular_building_planner": {
+    "id": "modular_building_planner",
+    "name": "modular building planner"
+  },
+  "modular_storage_tank_base": {
+    "id": "modular_storage_tank_base",
+    "name": "modular storage tank base"
+  },
+  "technum_ore": {
+    "id": "technum_ore",
+    "name": "technum ore"
+  },
+  "molten_technum": {
+    "id": "molten_technum",
+    "name": "molten technum"
+  },
+  "molten_xenoferrite": {
+    "id": "molten_xenoferrite",
+    "name": "molten xenoferrite"
+  },
+  "monument_base": {
+    "id": "monument_base",
+    "name": "monument base"
+  },
+  "office_chair": {
+    "id": "office_chair",
+    "name": "office chair"
+  },
+  "office_couch": {
+    "id": "office_couch",
+    "name": "office couch"
+  },
+  "office_desk": {
+    "id": "office_desk",
+    "name": "office desk"
+  },
+  "office_file_cabinet": {
+    "id": "office_file_cabinet",
+    "name": "office file cabinet"
+  },
+  "office_nameplate": {
+    "id": "office_nameplate",
+    "name": "office nameplate"
+  },
+  "office_plant": {
+    "id": "office_plant",
+    "name": "office plant"
+  },
+  "office_statue": {
+    "id": "office_statue",
+    "name": "office statue"
+  },
+  "office_table": {
+    "id": "office_table",
+    "name": "office table"
+  },
+  "office_wall_plaque": {
+    "id": "office_wall_plaque",
+    "name": "office wall plaque"
+  },
+  "liquid_polymer": {
+    "id": "liquid_polymer",
+    "name": "liquid polymer"
+  },
+  "waste_gas": {
+    "id": "waste_gas",
+    "name": "waste gas"
+  },
+  "ore_scanner": {
+    "id": "ore_scanner",
+    "name": "ore scanner"
+  },
+  "ore_vein_miner": {
+    "id": "ore_vein_miner",
+    "name": "ore vein miner"
+  },
+  "paint": {
+    "id": "paint",
+    "name": "paint"
+  },
+  "paint_roller": {
+    "id": "paint_roller",
+    "name": "paint roller"
+  },
+  "robot_parts": {
+    "id": "robot_parts",
+    "name": "robot parts"
+  },
+  "personal_assistant_robot_arm": {
+    "id": "personal_assistant_robot_arm",
+    "name": "personal assistant robot arm"
+  },
+  "personal_assistant_robot_head": {
+    "id": "personal_assistant_robot_head",
+    "name": "personal assistant robot head"
+  },
+  "personal_assistant_robot_leg": {
+    "id": "personal_assistant_robot_leg",
+    "name": "personal assistant robot leg"
+  },
+  "personal_assistant_robot_torso": {
+    "id": "personal_assistant_robot_torso",
+    "name": "personal assistant robot torso"
+  },
+  "liquid_intake": {
+    "id": "liquid_intake",
+    "name": "liquid intake"
+  },
+  "pipeline": {
+    "id": "pipeline",
+    "name": "pipeline"
+  },
+  "plumber_tool": {
+    "id": "plumber_tool",
+    "name": "plumber tool"
+  },
+  "portable_fuel": {
+    "id": "portable_fuel",
+    "name": "portable fuel"
+  },
+  "power_line": {
+    "id": "power_line",
+    "name": "power line"
+  },
+  "power_pole_large": {
+    "id": "power_pole_large",
+    "name": "power pole large"
+  },
+  "power_pole_small": {
+    "id": "power_pole_small",
+    "name": "power pole small"
+  },
+  "power_pole_wall_mounted": {
+    "id": "power_pole_wall_mounted",
+    "name": "power pole wall mounted"
+  },
+  "pump_pipelines": {
+    "id": "pump_pipelines",
+    "name": "pump pipelines"
+  },
+  "pump_pipes": {
+    "id": "pump_pipes",
+    "name": "pump pipes"
+  },
+  "pumpjack_i": {
+    "id": "pumpjack_i",
+    "name": "pumpjack i"
+  },
+  "radio_tower_base": {
+    "id": "radio_tower_base",
+    "name": "radio tower base"
+  },
+  "railings": {
+    "id": "railings",
+    "name": "railings"
+  },
+  "research_server": {
+    "id": "research_server",
+    "name": "research server"
+  },
+  "rocky_desert_seed_plants": {
+    "id": "rocky_desert_seed_plants",
+    "name": "rocky desert seed plants"
+  },
+  "rocky_desert_seed_trees": {
+    "id": "rocky_desert_seed_trees",
+    "name": "rocky desert seed trees"
+  },
+  "sales_warehouse": {
+    "id": "sales_warehouse",
+    "name": "sales warehouse"
+  },
+  "sales_warehouse_assembly_line": {
+    "id": "sales_warehouse_assembly_line",
+    "name": "sales warehouse assembly line"
+  },
+  "sandy_desert_seed_plants": {
+    "id": "sandy_desert_seed_plants",
+    "name": "sandy desert seed plants"
+  },
+  "sandy_desert_seed_trees": {
+    "id": "sandy_desert_seed_trees",
+    "name": "sandy desert seed trees"
+  },
+  "science_pack_i": {
+    "id": "science_pack_i",
+    "name": "science pack i"
+  },
+  "science_pack_ii": {
+    "id": "science_pack_ii",
+    "name": "science pack ii"
+  },
+  "science_pack_iii": {
+    "id": "science_pack_iii",
+    "name": "science pack iii"
+  },
+  "science_pack_iv": {
+    "id": "science_pack_iv",
+    "name": "science pack iv"
+  },
+  "science_pack_v": {
+    "id": "science_pack_v",
+    "name": "science pack v"
+  },
+  "sign": {
+    "id": "sign",
+    "name": "sign"
+  },
+  "smelter_small": {
+    "id": "smelter_small",
+    "name": "smelter small"
+  },
+  "solar_panel_large": {
+    "id": "solar_panel_large",
+    "name": "solar panel large"
+  },
+  "solar_panel_small": {
+    "id": "solar_panel_small",
+    "name": "solar panel small"
+  },
+  "space_station_requester_warehouse": {
+    "id": "space_station_requester_warehouse",
+    "name": "space station requester warehouse"
+  },
+  "stairs": {
+    "id": "stairs",
+    "name": "stairs"
+  },
+  "steam_turbine": {
+    "id": "steam_turbine",
+    "name": "steam turbine"
+  },
+  "xenoferrite_ignium_ore_blend": {
+    "id": "xenoferrite_ignium_ore_blend",
+    "name": "xenoferrite ignium ore blend"
+  },
+  "tank_i": {
+    "id": "tank_i",
+    "name": "tank i"
+  },
+  "telluxite_ore": {
+    "id": "telluxite_ore",
+    "name": "telluxite ore"
+  },
+  "telluxite_ore_rubble": {
+    "id": "telluxite_ore_rubble",
+    "name": "telluxite ore rubble"
+  },
+  "transformer_large": {
+    "id": "transformer_large",
+    "name": "transformer large"
+  },
+  "transformer_small": {
+    "id": "transformer_small",
+    "name": "transformer small"
+  },
+  "transport_ship_port": {
+    "id": "transport_ship_port",
+    "name": "transport ship port"
+  },
+  "tropical_rainforest_seed_plants": {
+    "id": "tropical_rainforest_seed_plants",
+    "name": "tropical rainforest seed plants"
+  },
+  "tropical_rainforest_seed_trees": {
+    "id": "tropical_rainforest_seed_trees",
+    "name": "tropical rainforest seed trees"
+  },
+  "walkway": {
+    "id": "walkway",
+    "name": "walkway"
+  },
+  "wall_light_i": {
+    "id": "wall_light_i",
+    "name": "wall light i"
+  },
+  "wooden_blocks": {
+    "id": "wooden_blocks",
+    "name": "wooden blocks"
+  },
+  "wooden_decor_blocks": {
+    "id": "wooden_decor_blocks",
+    "name": "wooden decor blocks"
+  }
+}

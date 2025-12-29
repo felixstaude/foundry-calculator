@@ -1,0 +1,18 @@
+[
+  {
+    "wikiTitle": "Recipe/Technum Rods",
+    "recipeId": "recipe_technum_rods",
+    "issues": [
+      "missing_base_time",
+      "missing_crafted_in"
+    ]
+  },
+  {
+    "wikiTitle": "Recipe/Xenoferrite Plates",
+    "recipeId": "recipe_xenoferrite_plates",
+    "issues": [
+      "missing_base_time",
+      "missing_crafted_in"
+    ]
+  }
+]

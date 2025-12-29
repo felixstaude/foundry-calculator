@@ -1,0 +1,34 @@
+{
+  "assembler": {
+    "id": "assembler",
+    "name": "assembler"
+  },
+  "crusher": {
+    "id": "crusher",
+    "name": "crusher"
+  },
+  "greenhouse": {
+    "id": "greenhouse",
+    "name": "greenhouse"
+  },
+  "chemical_processor": {
+    "id": "chemical_processor",
+    "name": "chemical processor"
+  },
+  "smelter": {
+    "id": "smelter",
+    "name": "smelter"
+  },
+  "casting_machine": {
+    "id": "casting_machine",
+    "name": "casting machine"
+  },
+  "hand": {
+    "id": "hand",
+    "name": "hand"
+  },
+  "distillation_column": {
+    "id": "distillation_column",
+    "name": "distillation column"
+  }
+}

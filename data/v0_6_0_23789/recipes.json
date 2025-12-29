@@ -1,0 +1,3964 @@
+{
+  "recipe_advanced_machinery_parts": {
+    "id": "recipe_advanced_machinery_parts",
+    "wikiTitle": "Recipe/Advanced Machinery Parts",
+    "name": "Advanced Machinery Parts",
+    "craftedIn": "assembler",
+    "baseTimeSec": 0.4,
+    "inputs": {
+      "machinery_parts": 2.0,
+      "steel_beams": 1.0
+    },
+    "outputs": {
+      "advanced_machinery_parts": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_advanced_smelter": {
+    "id": "recipe_advanced_smelter",
+    "wikiTitle": "Recipe/Advanced Smelter",
+    "name": "Advanced Smelter",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 15.0,
+      "advanced_machinery_parts": 5.0,
+      "circuit_board": 5.0
+    },
+    "outputs": {
+      "advanced_smelter": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_advanced_xenoferrite_ignium_ore_blend": {
+    "id": "recipe_advanced_xenoferrite_ignium_ore_blend",
+    "wikiTitle": "Recipe/Advanced Xenoferrite-Ignium Ore Blend",
+    "name": "Advanced Xenoferrite-Ignium Ore Blend",
+    "craftedIn": "crusher",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_ore": 4.0,
+      "ignium_ore": 2.0
+    },
+    "outputs": {
+      "advanced_xenoferrite_ignium_ore_blend": 1.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_air_intake_base": {
+    "id": "recipe_air_intake_base",
+    "wikiTitle": "Recipe/Air Intake Base",
+    "name": "Air Intake Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "xenoferrite_plates": 200.0,
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 100.0,
+      "circuit_board": 25.0
+    },
+    "outputs": {
+      "air_intake_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembler_i": {
+    "id": "recipe_assembler_i",
+    "wikiTitle": "Recipe/Assembler I",
+    "name": "Assembler I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "machinery_parts": 10.0,
+      "electronic_components": 5.0
+    },
+    "outputs": {
+      "assembler_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembler_ii": {
+    "id": "recipe_assembler_ii",
+    "wikiTitle": "Recipe/Assembler II",
+    "name": "Assembler II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 6.0,
+    "inputs": {
+      "assembler_i": 1.0,
+      "advanced_machinery_parts": 6.0
+    },
+    "outputs": {
+      "assembler_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembler_iii": {
+    "id": "recipe_assembler_iii",
+    "wikiTitle": "Recipe/Assembler III",
+    "name": "Assembler III",
+    "craftedIn": "assembler",
+    "baseTimeSec": 6.0,
+    "inputs": {
+      "assembler_ii": 1.0,
+      "firmarlite_sheet": 20.0,
+      "circuit_board": 10.0
+    },
+    "outputs": {
+      "assembler_iii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembly_line_merger": {
+    "id": "recipe_assembly_line_merger",
+    "wikiTitle": "Recipe/Assembly Line Merger",
+    "name": "Assembly Line Merger",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 25.0,
+      "advanced_machinery_parts": 6.0,
+      "circuit_board": 2.0
+    },
+    "outputs": {
+      "assembly_line_merger": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembly_line_painter": {
+    "id": "recipe_assembly_line_painter",
+    "wikiTitle": "Recipe/Assembly Line Painter",
+    "name": "Assembly Line Painter",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 40.0,
+      "advanced_machinery_parts": 10.0,
+      "circuit_board": 10.0,
+      "hydraulic_piston": 10.0
+    },
+    "outputs": {
+      "assembly_line_painter": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembly_line_producer": {
+    "id": "recipe_assembly_line_producer",
+    "wikiTitle": "Recipe/Assembly Line Producer",
+    "name": "Assembly Line Producer",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 40.0,
+      "advanced_machinery_parts": 10.0,
+      "circuit_board": 10.0,
+      "hydraulic_piston": 10.0
+    },
+    "outputs": {
+      "assembly_line_producer": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembly_line_rail": {
+    "id": "recipe_assembly_line_rail",
+    "wikiTitle": "Recipe/Assembly Line Rail",
+    "name": "Assembly Line Rail",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 6.0,
+      "advanced_machinery_parts": 1.0
+    },
+    "outputs": {
+      "assembly_line_rail": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembly_line_splitter": {
+    "id": "recipe_assembly_line_splitter",
+    "wikiTitle": "Recipe/Assembly Line Splitter",
+    "name": "Assembly Line Splitter",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 25.0,
+      "advanced_machinery_parts": 6.0,
+      "circuit_board": 2.0
+    },
+    "outputs": {
+      "assembly_line_splitter": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_assembly_line_start": {
+    "id": "recipe_assembly_line_start",
+    "wikiTitle": "Recipe/Assembly Line Start",
+    "name": "Assembly Line Start",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 30.0,
+      "advanced_machinery_parts": 8.0,
+      "circuit_board": 4.0,
+      "hydraulic_piston": 8.0
+    },
+    "outputs": {
+      "assembly_line_start": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_battery_large": {
+    "id": "recipe_battery_large",
+    "wikiTitle": "Recipe/Battery (Large)",
+    "name": "Battery (Large)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "circuit_board": 10.0,
+      "energy_cell": 20.0
+    },
+    "outputs": {
+      "battery_large": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_battery_small": {
+    "id": "recipe_battery_small",
+    "wikiTitle": "Recipe/Battery (Small)",
+    "name": "Battery (Small)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "electronic_components": 4.0,
+      "technum_rods": 20.0,
+      "energy_cell": 10.0
+    },
+    "outputs": {
+      "battery_small": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_biomass": {
+    "id": "recipe_biomass",
+    "wikiTitle": "Recipe/Biomass",
+    "name": "Biomass",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 60.0,
+    "inputs": {
+      "biomass": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "biomass": 2.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_biomass_burner": {
+    "id": "recipe_biomass_burner",
+    "wikiTitle": "Recipe/Biomass Burner",
+    "name": "Biomass Burner",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "xenoferrite_plates": 5.0,
+      "electronic_components": 5.0,
+      "technum_rods": 5.0
+    },
+    "outputs": {
+      "biomass_burner": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_blast_furnace_base": {
+    "id": "recipe_blast_furnace_base",
+    "wikiTitle": "Recipe/Blast Furnace Base",
+    "name": "Blast Furnace Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "concrete": 600.0,
+      "steel_beams": 600.0,
+      "advanced_machinery_parts": 300.0,
+      "circuit_board": 200.0
+    },
+    "outputs": {
+      "blast_furnace_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_boiler": {
+    "id": "recipe_boiler",
+    "wikiTitle": "Recipe/Boiler",
+    "name": "Boiler",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "pipe": 5.0,
+      "machinery_parts": 10.0,
+      "steel_beams": 10.0
+    },
+    "outputs": {
+      "boiler": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_building_block": {
+    "id": "recipe_building_block",
+    "wikiTitle": "Recipe/Building Block",
+    "name": "Building Block",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 6.0,
+      "technum_rods": 4.0
+    },
+    "outputs": {
+      "building_block": 10.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_burner_generator": {
+    "id": "recipe_burner_generator",
+    "wikiTitle": "Recipe/Burner Generator",
+    "name": "Burner Generator",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "xenoferrite_plates": 25.0,
+      "electronic_components": 10.0,
+      "technum_rods": 5.0
+    },
+    "outputs": {
+      "burner_generator": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_cpu": {
+    "id": "recipe_cpu",
+    "wikiTitle": "Recipe/CPU",
+    "name": "CPU",
+    "craftedIn": "chemical_processor",
+    "baseTimeSec": 120.0,
+    "inputs": {
+      "telluxite_wafer": 1.0,
+      "polymer_board": 2.0,
+      "olumic_acid": 80.0
+    },
+    "outputs": {
+      "cpu": 8.0
+    },
+    "craftersSeen": [
+      "Chemical Processor"
+    ]
+  },
+  "recipe_cargo_ship_start_pad": {
+    "id": "recipe_cargo_ship_start_pad",
+    "wikiTitle": "Recipe/Cargo Ship Start Pad",
+    "name": "Cargo Ship Start Pad",
+    "craftedIn": "assembler",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "steel_beams": 200.0,
+      "advanced_machinery_parts": 100.0,
+      "circuit_board": 50.0,
+      "glass": 20.0
+    },
+    "outputs": {
+      "cargo_ship_start_pad": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_cargo_ship_target_pad": {
+    "id": "recipe_cargo_ship_target_pad",
+    "wikiTitle": "Recipe/Cargo Ship Target Pad",
+    "name": "Cargo Ship Target Pad",
+    "craftedIn": "assembler",
+    "baseTimeSec": 12.0,
+    "inputs": {
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 10.0,
+      "circuit_board": 10.0
+    },
+    "outputs": {
+      "cargo_ship_target_pad": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_casting_machine": {
+    "id": "recipe_casting_machine",
+    "wikiTitle": "Recipe/Casting Machine",
+    "name": "Casting Machine",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "steel_beams": 15.0,
+      "advanced_machinery_parts": 20.0,
+      "electronic_components": 5.0
+    },
+    "outputs": {
+      "casting_machine": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_ceiling_light": {
+    "id": "recipe_ceiling_light",
+    "wikiTitle": "Recipe/Ceiling Light",
+    "name": "Ceiling Light",
+    "craftedIn": "assembler",
+    "baseTimeSec": 2.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "ceiling_light_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_cement": {
+    "id": "recipe_cement",
+    "wikiTitle": "Recipe/Cement",
+    "name": "Cement",
+    "craftedIn": "crusher",
+    "baseTimeSec": 12.0,
+    "inputs": {
+      "mineral_rocks": 2.0,
+      "xenoferrite_ore_rubble": 1.0
+    },
+    "outputs": {
+      "cement": 2.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_cement_slag_reprocessing": {
+    "id": "recipe_cement_slag_reprocessing",
+    "wikiTitle": "Recipe/Cement (Slag Reprocessing)",
+    "name": "Cement (Slag Reprocessing)",
+    "craftedIn": "chemical_processor",
+    "baseTimeSec": 12.0,
+    "inputs": {
+      "blast_furnace_slag": 36.0
+    },
+    "outputs": {
+      "cement": 1.0
+    },
+    "craftersSeen": [
+      "Chemical Processor"
+    ]
+  },
+  "recipe_chemical_processor": {
+    "id": "recipe_chemical_processor",
+    "wikiTitle": "Recipe/Chemical Processor",
+    "name": "Chemical Processor",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "steel_beams": 20.0,
+      "polymer_board": 10.0,
+      "advanced_machinery_parts": 5.0,
+      "circuit_board": 5.0
+    },
+    "outputs": {
+      "chemical_processor": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_circuit_board": {
+    "id": "recipe_circuit_board",
+    "wikiTitle": "Recipe/Circuit Board",
+    "name": "Circuit Board",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "polymer_board": 1.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "circuit_board": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_coked_ignium": {
+    "id": "recipe_coked_ignium",
+    "wikiTitle": "Recipe/Coked Ignium",
+    "name": "Coked Ignium",
+    "craftedIn": "smelter",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "ignium_ore": 2.0
+    },
+    "outputs": {
+      "coked_ignium": 5.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter"
+    ]
+  },
+  "recipe_concrete": {
+    "id": "recipe_concrete",
+    "wikiTitle": "Recipe/Concrete",
+    "name": "Concrete",
+    "craftedIn": "casting_machine",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "cement": 2.0,
+      "gravel": 4.0,
+      "water": 20.0
+    },
+    "outputs": {
+      "concrete": 4.0
+    },
+    "craftersSeen": [
+      "Casting Machine"
+    ]
+  },
+  "recipe_construction_material": {
+    "id": "recipe_construction_material",
+    "wikiTitle": "Recipe/Construction Material",
+    "name": "Construction Material",
+    "craftedIn": "assembler",
+    "baseTimeSec": 90.0,
+    "inputs": {
+      "xenoferrite_plates": 100.0,
+      "steel_beams": 25.0,
+      "advanced_machinery_parts": 25.0,
+      "concrete": 60.0,
+      "polymer_board": 60.0,
+      "electronic_components": 50.0
+    },
+    "outputs": {
+      "construction_material": 320.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_construction_ship_port": {
+    "id": "recipe_construction_ship_port",
+    "wikiTitle": "Recipe/Construction Ship Port",
+    "name": "Construction Ship Port",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 100.0,
+      "circuit_board": 25.0,
+      "energy_cell": 10.0,
+      "polymer_board": 50.0,
+      "maintenance_drone": 20.0
+    },
+    "outputs": {
+      "construction_ship_port": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_construction_warehouse": {
+    "id": "recipe_construction_warehouse",
+    "wikiTitle": "Recipe/Construction Warehouse",
+    "name": "Construction Warehouse",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 200.0,
+      "advanced_machinery_parts": 50.0,
+      "circuit_board": 50.0,
+      "polymer_board": 100.0
+    },
+    "outputs": {
+      "construction_warehouse": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_container": {
+    "id": "recipe_container",
+    "wikiTitle": "Recipe/Container",
+    "name": "Container",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 30.0
+    },
+    "outputs": {
+      "container": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_balancer_i": {
+    "id": "recipe_conveyor_balancer_i",
+    "wikiTitle": "Recipe/Conveyor Balancer I",
+    "name": "Conveyor Balancer I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "conveyor_i": 4.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "conveyor_balancer_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_balancer_ii": {
+    "id": "recipe_conveyor_balancer_ii",
+    "wikiTitle": "Recipe/Conveyor Balancer II",
+    "name": "Conveyor Balancer II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "conveyor_balancer_i": 1.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "conveyor_balancer_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_balancer_iii": {
+    "id": "recipe_conveyor_balancer_iii",
+    "wikiTitle": "Recipe/Conveyor Balancer III",
+    "name": "Conveyor Balancer III",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "conveyor_balancer_ii": 1.0,
+      "advanced_machinery_parts": 2.0,
+      "circuit_board": 1.0
+    },
+    "outputs": {
+      "conveyor_balancer_iii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_i": {
+    "id": "recipe_conveyor_i",
+    "wikiTitle": "Recipe/Conveyor I",
+    "name": "Conveyor I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "machinery_parts": 1.0
+    },
+    "outputs": {
+      "conveyor_i": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_ii": {
+    "id": "recipe_conveyor_ii",
+    "wikiTitle": "Recipe/Conveyor II",
+    "name": "Conveyor II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "conveyor_i": 2.0,
+      "machinery_parts": 2.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "conveyor_ii": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_iii": {
+    "id": "recipe_conveyor_iii",
+    "wikiTitle": "Recipe/Conveyor III",
+    "name": "Conveyor III",
+    "craftedIn": "assembler",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "conveyor_ii": 2.0,
+      "advanced_machinery_parts": 1.0,
+      "circuit_board": 1.0
+    },
+    "outputs": {
+      "conveyor_iii": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_slope_i": {
+    "id": "recipe_conveyor_slope_i",
+    "wikiTitle": "Recipe/Conveyor Slope I",
+    "name": "Conveyor Slope I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "conveyor_i": 2.0,
+      "machinery_parts": 1.0
+    },
+    "outputs": {
+      "conveyor_slope_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_slope_ii": {
+    "id": "recipe_conveyor_slope_ii",
+    "wikiTitle": "Recipe/Conveyor Slope II",
+    "name": "Conveyor Slope II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 2.5,
+    "inputs": {
+      "conveyor_slope_i": 1.0,
+      "machinery_parts": 2.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "conveyor_slope_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_conveyor_slope_iii": {
+    "id": "recipe_conveyor_slope_iii",
+    "wikiTitle": "Recipe/Conveyor Slope III",
+    "name": "Conveyor Slope III",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.75,
+    "inputs": {
+      "conveyor_slope_ii": 1.0,
+      "advanced_machinery_parts": 1.0,
+      "circuit_board": 1.0
+    },
+    "outputs": {
+      "conveyor_slope_iii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_crate": {
+    "id": "recipe_crate",
+    "wikiTitle": "Recipe/Crate",
+    "name": "Crate",
+    "craftedIn": "assembler",
+    "baseTimeSec": 2.0,
+    "inputs": {
+      "xenoferrite_plates": 6.0
+    },
+    "outputs": {
+      "crate": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_crusher_i": {
+    "id": "recipe_crusher_i",
+    "wikiTitle": "Recipe/Crusher I",
+    "name": "Crusher I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "machinery_parts": 10.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "crusher_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_crusher_ii": {
+    "id": "recipe_crusher_ii",
+    "wikiTitle": "Recipe/Crusher II",
+    "name": "Crusher II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 6.0,
+    "inputs": {
+      "crusher_i": 1.0,
+      "advanced_machinery_parts": 5.0,
+      "circuit_board": 5.0
+    },
+    "outputs": {
+      "crusher_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_basic_shapes": {
+    "id": "recipe_decor_basic_shapes",
+    "wikiTitle": "Recipe/Decor (Basic Shapes)",
+    "name": "Decor (Basic Shapes)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "decor_basic_shapes": 4.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_misc": {
+    "id": "recipe_decor_misc",
+    "wikiTitle": "Recipe/Decor (Misc)",
+    "name": "Decor (Misc)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0
+    },
+    "outputs": {
+      "decor_misc": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_modular_windows": {
+    "id": "recipe_decor_modular_windows",
+    "wikiTitle": "Recipe/Decor (Modular Windows)",
+    "name": "Decor (Modular Windows)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "glass": 1.0
+    },
+    "outputs": {
+      "decor_modular_windows": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_struts": {
+    "id": "recipe_decor_struts",
+    "wikiTitle": "Recipe/Decor (Struts)",
+    "name": "Decor (Struts)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "steel_beams": 1.0
+    },
+    "outputs": {
+      "decor_struts": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_support": {
+    "id": "recipe_decor_support",
+    "wikiTitle": "Recipe/Decor (Support)",
+    "name": "Decor (Support)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "steel_beams": 1.0
+    },
+    "outputs": {
+      "decor_support": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_walls": {
+    "id": "recipe_decor_walls",
+    "wikiTitle": "Recipe/Decor (Walls)",
+    "name": "Decor (Walls)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "xenoferrite_plates": 5.0
+    },
+    "outputs": {
+      "decor_walls": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_decor_windows": {
+    "id": "recipe_decor_windows",
+    "wikiTitle": "Recipe/Decor (Windows)",
+    "name": "Decor (Windows)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "steel_beams": 1.0,
+      "glass": 1.0
+    },
+    "outputs": {
+      "decor_windows": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_distillation_column": {
+    "id": "recipe_distillation_column",
+    "wikiTitle": "Recipe/Distillation Column",
+    "name": "Distillation Column",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 30.0,
+      "pipe": 30.0,
+      "advanced_machinery_parts": 15.0,
+      "electronic_components": 15.0
+    },
+    "outputs": {
+      "distillation_column": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_door_double": {
+    "id": "recipe_door_double",
+    "wikiTitle": "Recipe/Door (Double)",
+    "name": "Door (Double)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 20.0,
+      "machinery_parts": 5.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "door_double": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_door_single": {
+    "id": "recipe_door_single",
+    "wikiTitle": "Recipe/Door (Single)",
+    "name": "Door (Single)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "machinery_parts": 2.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "door_single": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_drone_miner_i": {
+    "id": "recipe_drone_miner_i",
+    "wikiTitle": "Recipe/Drone Miner I",
+    "name": "Drone Miner I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "machinery_parts": 8.0,
+      "electronic_components": 6.0
+    },
+    "outputs": {
+      "drone_miner_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_drone_miner_ii": {
+    "id": "recipe_drone_miner_ii",
+    "wikiTitle": "Recipe/Drone Miner II",
+    "name": "Drone Miner II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "drone_miner_i": 1.0,
+      "advanced_machinery_parts": 10.0,
+      "circuit_board": 4.0
+    },
+    "outputs": {
+      "drone_miner_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_electric_arc_furnace": {
+    "id": "recipe_electric_arc_furnace",
+    "wikiTitle": "Recipe/Electric Arc Furnace",
+    "name": "Electric Arc Furnace",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "steel_beams": 30.0,
+      "advanced_machinery_parts": 25.0,
+      "electronic_components": 50.0,
+      "circuit_board": 5.0
+    },
+    "outputs": {
+      "electric_arc_furnace": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_electronic_components": {
+    "id": "recipe_electronic_components",
+    "wikiTitle": "Recipe/Electronic Components",
+    "name": "Electronic Components",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "technum_rods": 1.0,
+      "wire_coil": 2.0
+    },
+    "outputs": {
+      "electronic_components": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_elevator": {
+    "id": "recipe_elevator",
+    "wikiTitle": "Recipe/Elevator",
+    "name": "Elevator",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "xenoferrite_plates": 50.0,
+      "steel_beams": 50.0,
+      "advanced_machinery_parts": 20.0,
+      "electronic_components": 15.0
+    },
+    "outputs": {
+      "elevator": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_emergency_beacon": {
+    "id": "recipe_emergency_beacon",
+    "wikiTitle": "Recipe/Emergency Beacon",
+    "name": "Emergency Beacon",
+    "craftedIn": "hand",
+    "baseTimeSec": 1.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 5.0
+    },
+    "outputs": {
+      "emergency_beacon": 1.0
+    },
+    "craftersSeen": [
+      "Character"
+    ]
+  },
+  "recipe_energy_cell": {
+    "id": "recipe_energy_cell",
+    "wikiTitle": "Recipe/Energy Cell",
+    "name": "Energy Cell",
+    "craftedIn": "assembler",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "xenoferrite_plates": 3.0,
+      "electronic_components": 6.0,
+      "glass": 6.0,
+      "olumic_acid": 60.0
+    },
+    "outputs": {
+      "energy_cell": 6.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_executive_office_chair": {
+    "id": "recipe_executive_office_chair",
+    "wikiTitle": "Recipe/Executive Office Chair",
+    "name": "Executive Office Chair",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "executive_office_chair": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_executive_office_couch": {
+    "id": "recipe_executive_office_couch",
+    "wikiTitle": "Recipe/Executive Office Couch",
+    "name": "Executive Office Couch",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "executive_office_couch": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_executive_office_desk": {
+    "id": "recipe_executive_office_desk",
+    "wikiTitle": "Recipe/Executive Office Desk",
+    "name": "Executive Office Desk",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 1.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "executive_office_desk": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_executive_office_file_cabinet": {
+    "id": "recipe_executive_office_file_cabinet",
+    "wikiTitle": "Recipe/Executive Office File Cabinet",
+    "name": "Executive Office File Cabinet",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "executive_office_file_cabinet": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_executive_office_plant": {
+    "id": "recipe_executive_office_plant",
+    "wikiTitle": "Recipe/Executive Office Plant",
+    "name": "Executive Office Plant",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "executive_office_plant": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_executive_office_table": {
+    "id": "recipe_executive_office_table",
+    "wikiTitle": "Recipe/Executive Office Table",
+    "name": "Executive Office Table",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "executive_office_table": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_explosive_charge": {
+    "id": "recipe_explosive_charge",
+    "wikiTitle": "Recipe/Explosive Charge",
+    "name": "Explosive Charge",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "explosives": 1.0,
+      "wire_coil": 3.0,
+      "electronic_components": 3.0
+    },
+    "outputs": {
+      "explosive_charge": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_explosives": {
+    "id": "recipe_explosives",
+    "wikiTitle": "Recipe/Explosives",
+    "name": "Explosives",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "ignium_powder": 4.0,
+      "low_density_olumite": 50.0
+    },
+    "outputs": {
+      "explosives": 1.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_explosives_primitive": {
+    "id": "recipe_explosives_primitive",
+    "wikiTitle": "Recipe/Explosives (Primitive)",
+    "name": "Explosives (Primitive)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "ignium_ore_rubble": 2.0,
+      "technum_ore_rubble": 2.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "explosives": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_explosives_detonator": {
+    "id": "recipe_explosives_detonator",
+    "wikiTitle": "Recipe/Explosives Detonator",
+    "name": "Explosives Detonator",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 40.0
+    },
+    "outputs": {
+      "explosives_detonator": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_filter_loader": {
+    "id": "recipe_filter_loader",
+    "wikiTitle": "Recipe/Filter Loader",
+    "name": "Filter Loader",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 4.0,
+      "advanced_machinery_parts": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "filter_loader": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_firmarlite_sheet_t1": {
+    "id": "recipe_firmarlite_sheet_t1",
+    "wikiTitle": "Recipe/Firmarlite Sheet (T1)",
+    "name": "Firmarlite Sheet (T1)",
+    "craftedIn": "casting_machine",
+    "baseTimeSec": 12.0,
+    "inputs": {
+      "liquid_firmarlite": 250.0
+    },
+    "outputs": {
+      "firmarlite_sheet": 1.0
+    },
+    "craftersSeen": [
+      "Casting Machine"
+    ]
+  },
+  "recipe_flare_stack": {
+    "id": "recipe_flare_stack",
+    "wikiTitle": "Recipe/Flare Stack",
+    "name": "Flare Stack",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "steel_beams": 5.0,
+      "machinery_parts": 5.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "flare_stack": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_fluid_assembler_i": {
+    "id": "recipe_fluid_assembler_i",
+    "wikiTitle": "Recipe/Fluid-Assembler I",
+    "name": "Fluid-Assembler I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "xenoferrite_plates": 15.0,
+      "advanced_machinery_parts": 10.0,
+      "circuit_board": 5.0,
+      "polymer_board": 10.0
+    },
+    "outputs": {
+      "fluid_assembler_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_forest_seed_plants": {
+    "id": "recipe_forest_seed_plants",
+    "wikiTitle": "Recipe/Forest Seed (Plants)",
+    "name": "Forest Seed (Plants)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "forest_seed_plants": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "forest_seed_plants": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_forest_seed_trees": {
+    "id": "recipe_forest_seed_trees",
+    "wikiTitle": "Recipe/Forest Seed (Trees)",
+    "name": "Forest Seed (Trees)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "forest_seed_trees": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "forest_seed_trees": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_fracking_liquid": {
+    "id": "recipe_fracking_liquid",
+    "wikiTitle": "Recipe/Fracking Liquid",
+    "name": "Fracking Liquid",
+    "craftedIn": "chemical_processor",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "air": 30.0,
+      "olumite_gas": 10.0,
+      "water": 60.0
+    },
+    "outputs": {
+      "fracking_liquid": 100.0
+    },
+    "craftersSeen": [
+      "Chemical Processor"
+    ]
+  },
+  "recipe_fracking_tower_base": {
+    "id": "recipe_fracking_tower_base",
+    "wikiTitle": "Recipe/Fracking Tower Base",
+    "name": "Fracking Tower Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "xenoferrite_plates": 200.0,
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 25.0,
+      "circuit_board": 25.0
+    },
+    "outputs": {
+      "fracking_tower_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_freight_elevator_i": {
+    "id": "recipe_freight_elevator_i",
+    "wikiTitle": "Recipe/Freight Elevator I",
+    "name": "Freight Elevator I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "xenoferrite_plates": 15.0,
+      "steel_beams": 15.0,
+      "advanced_machinery_parts": 5.0
+    },
+    "outputs": {
+      "freight_elevator_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_freight_elevator_ii": {
+    "id": "recipe_freight_elevator_ii",
+    "wikiTitle": "Recipe/Freight Elevator II",
+    "name": "Freight Elevator II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "freight_elevator_i": 1.0,
+      "advanced_machinery_parts": 5.0,
+      "circuit_board": 5.0
+    },
+    "outputs": {
+      "freight_elevator_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_fuel_rod_casing": {
+    "id": "recipe_fuel_rod_casing",
+    "wikiTitle": "Recipe/Fuel Rod Casing",
+    "name": "Fuel Rod Casing",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "advanced_machinery_parts": 1.0,
+      "steel_beams": 1.0
+    },
+    "outputs": {
+      "fuel_rod_casing": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_glass": {
+    "id": "recipe_glass",
+    "wikiTitle": "Recipe/Glass",
+    "name": "Glass",
+    "craftedIn": "smelter",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "gravel": 5.0
+    },
+    "outputs": {
+      "glass": 1.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter",
+      "Smelter (Small)"
+    ]
+  },
+  "recipe_gravel": {
+    "id": "recipe_gravel",
+    "wikiTitle": "Recipe/Gravel",
+    "name": "Gravel",
+    "craftedIn": "crusher",
+    "baseTimeSec": 12.0,
+    "inputs": {
+      "mineral_rocks": 2.0
+    },
+    "outputs": {
+      "gravel": 6.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_greenhouse": {
+    "id": "recipe_greenhouse",
+    "wikiTitle": "Recipe/Greenhouse",
+    "name": "Greenhouse",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 20.0,
+      "glass": 6.0,
+      "pipe": 4.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "greenhouse": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_hangar_gate": {
+    "id": "recipe_hangar_gate",
+    "wikiTitle": "Recipe/Hangar Gate",
+    "name": "Hangar Gate",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "steel_beams": 25.0,
+      "advanced_machinery_parts": 10.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "hangar_gate": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_hot_air_stove_base": {
+    "id": "recipe_hot_air_stove_base",
+    "wikiTitle": "Recipe/Hot Air Stove Base",
+    "name": "Hot Air Stove Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "concrete": 100.0,
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 25.0,
+      "electronic_components": 25.0
+    },
+    "outputs": {
+      "hot_air_stove_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_hydraulic_piston": {
+    "id": "recipe_hydraulic_piston",
+    "wikiTitle": "Recipe/Hydraulic Piston",
+    "name": "Hydraulic Piston",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "steel_beams": 1.0,
+      "low_density_olumite": 30.0
+    },
+    "outputs": {
+      "hydraulic_piston": 1.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_ignium_fuel_rod": {
+    "id": "recipe_ignium_fuel_rod",
+    "wikiTitle": "Recipe/Ignium Fuel Rod",
+    "name": "Ignium Fuel Rod",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "fuel_rod_casing": 1.0,
+      "wire_coil": 10.0,
+      "ignium_powder": 20.0,
+      "liquid_fuel": 400.0
+    },
+    "outputs": {
+      "ignium_fuel_rod": 1.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_ignium_ore": {
+    "id": "recipe_ignium_ore",
+    "wikiTitle": "Recipe/Ignium Ore",
+    "name": "Ignium Ore",
+    "craftedIn": "crusher",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "ignium_ore_rubble": 1.0
+    },
+    "outputs": {
+      "ignium_ore": 1.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_ignium_powder": {
+    "id": "recipe_ignium_powder",
+    "wikiTitle": "Recipe/Ignium Powder",
+    "name": "Ignium Powder",
+    "craftedIn": "crusher",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "ignium_ore_rubble": 1.0
+    },
+    "outputs": {
+      "ignium_powder": 5.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_incinerator": {
+    "id": "recipe_incinerator",
+    "wikiTitle": "Recipe/Incinerator",
+    "name": "Incinerator",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "steel_beams": 20.0,
+      "electronic_components": 5.0,
+      "concrete": 25.0
+    },
+    "outputs": {
+      "incinerator": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_jetpack_fuel": {
+    "id": "recipe_jetpack_fuel",
+    "wikiTitle": "Recipe/Jetpack Fuel",
+    "name": "Jetpack Fuel",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "liquid_fuel": 30.0
+    },
+    "outputs": {
+      "jetpack_fuel": 1.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_ladder": {
+    "id": "recipe_ladder",
+    "wikiTitle": "Recipe/Ladder",
+    "name": "Ladder",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_plates": 2.0
+    },
+    "outputs": {
+      "ladder": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_liquid_firmarlite": {
+    "id": "recipe_liquid_firmarlite",
+    "wikiTitle": "Recipe/Liquid Firmarlite",
+    "name": "Liquid Firmarlite",
+    "craftedIn": "smelter",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "firmarlite_bar": 100.0
+    },
+    "outputs": {
+      "liquid_firmarlite": 1250.0
+    },
+    "craftersSeen": [
+      "Electric Arc Furnace"
+    ]
+  },
+  "recipe_liquid_fuel": {
+    "id": "recipe_liquid_fuel",
+    "wikiTitle": "Recipe/Liquid Fuel",
+    "name": "Liquid Fuel",
+    "craftedIn": "chemical_processor",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "low_density_olumite": 50.0
+    },
+    "outputs": {
+      "liquid_fuel": 150.0
+    },
+    "craftersSeen": [
+      "Chemical Processor"
+    ]
+  },
+  "recipe_liquid_telluxite": {
+    "id": "recipe_liquid_telluxite",
+    "wikiTitle": "Recipe/Liquid Telluxite",
+    "name": "Liquid Telluxite",
+    "craftedIn": "smelter",
+    "baseTimeSec": 60.0,
+    "inputs": {
+      "telluxite_ingot": 40.0
+    },
+    "outputs": {
+      "liquid_telluxite": 2000.0
+    },
+    "craftersSeen": [
+      "Electric Arc Furnace"
+    ]
+  },
+  "recipe_loader": {
+    "id": "recipe_loader",
+    "wikiTitle": "Recipe/Loader",
+    "name": "Loader",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 4.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "loader": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_loader_2nd_lane": {
+    "id": "recipe_loader_2nd_lane",
+    "wikiTitle": "Recipe/Loader 2nd Lane",
+    "name": "Loader 2nd Lane",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 8.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "loader_2nd_lane": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_loader_3rd_lane": {
+    "id": "recipe_loader_3rd_lane",
+    "wikiTitle": "Recipe/Loader 3rd Lane",
+    "name": "Loader 3rd Lane",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 12.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "loader_3rd_lane": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_logistic_container_i": {
+    "id": "recipe_logistic_container_i",
+    "wikiTitle": "Recipe/Logistic Container I",
+    "name": "Logistic Container I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 15.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "logistic_container_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_logistic_container_ii": {
+    "id": "recipe_logistic_container_ii",
+    "wikiTitle": "Recipe/Logistic Container II",
+    "name": "Logistic Container II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "xenoferrite_plates": 15.0,
+      "steel_beams": 10.0,
+      "advanced_machinery_parts": 4.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "logistic_container_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_logistic_container_iii": {
+    "id": "recipe_logistic_container_iii",
+    "wikiTitle": "Recipe/Logistic Container III",
+    "name": "Logistic Container III",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 25.0,
+      "advanced_machinery_parts": 4.0,
+      "circuit_board": 1.0
+    },
+    "outputs": {
+      "logistic_container_iii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_long_range_scanner_base": {
+    "id": "recipe_long_range_scanner_base",
+    "wikiTitle": "Recipe/Long Range Scanner Base",
+    "name": "Long Range Scanner Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "concrete": 25.0,
+      "steel_beams": 50.0,
+      "machinery_parts": 25.0,
+      "electronic_components": 50.0
+    },
+    "outputs": {
+      "long_range_scanner": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_machinery_parts": {
+    "id": "recipe_machinery_parts",
+    "wikiTitle": "Recipe/Machinery Parts",
+    "name": "Machinery Parts",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "machinery_parts": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_maintenance_drone": {
+    "id": "recipe_maintenance_drone",
+    "wikiTitle": "Recipe/Maintenance Drone",
+    "name": "Maintenance Drone",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "advanced_machinery_parts": 4.0,
+      "electronic_components": 5.0,
+      "circuit_board": 1.0,
+      "energy_cell": 1.0
+    },
+    "outputs": {
+      "maintenance_drone": 1.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_marble_black": {
+    "id": "recipe_marble_black",
+    "wikiTitle": "Recipe/Marble (Black)",
+    "name": "Marble (Black)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "mineral_rocks": 1.0,
+      "crude_olumite": 5.0
+    },
+    "outputs": {
+      "marble_black": 2.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_marble_white": {
+    "id": "recipe_marble_white",
+    "wikiTitle": "Recipe/Marble (White)",
+    "name": "Marble (White)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "mineral_rocks": 1.0,
+      "water": 5.0
+    },
+    "outputs": {
+      "marble_white": 2.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_mining_drill": {
+    "id": "recipe_mining_drill",
+    "wikiTitle": "Recipe/Mining Drill",
+    "name": "Mining Drill",
+    "craftedIn": "hand",
+    "baseTimeSec": 2.67,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 25.0,
+      "technum_rods": 25.0
+    },
+    "outputs": {
+      "mining_drill": 1.0
+    },
+    "craftersSeen": [
+      "Character"
+    ]
+  },
+  "recipe_mining_laser": {
+    "id": "recipe_mining_laser",
+    "wikiTitle": "Recipe/Mining Laser",
+    "name": "Mining Laser",
+    "craftedIn": "hand",
+    "baseTimeSec": 3.33,
+    "inputs": {
+      "steel_beams": 2.0,
+      "advanced_machinery_parts": 15.0,
+      "energy_cell": 15.0,
+      "electronic_components": 15.0
+    },
+    "outputs": {
+      "mining_laser": 1.0
+    },
+    "craftersSeen": [
+      "Character"
+    ]
+  },
+  "recipe_modular_building_planner": {
+    "id": "recipe_modular_building_planner",
+    "wikiTitle": "Recipe/Modular Building Planner",
+    "name": "Modular Building Planner",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "polymer_board": 1.0,
+      "machinery_parts": 1.0
+    },
+    "outputs": {
+      "modular_building_planner": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_modular_storage_tank_base": {
+    "id": "recipe_modular_storage_tank_base",
+    "wikiTitle": "Recipe/Modular Storage Tank Base",
+    "name": "Modular Storage Tank Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "xenoferrite_plates": 200.0,
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 25.0,
+      "circuit_board": 25.0
+    },
+    "outputs": {
+      "modular_storage_tank_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_molten_technum": {
+    "id": "recipe_molten_technum",
+    "wikiTitle": "Recipe/Molten Technum",
+    "name": "Molten Technum",
+    "craftedIn": "smelter",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "technum_ore": 640.0,
+      "coked_ignium": 320.0,
+      "mineral_rocks": 128.0
+    },
+    "outputs": {
+      "molten_technum": 5760.0,
+      "blast_furnace_slag": 640.0
+    },
+    "craftersSeen": [
+      "Blast Furnace Base"
+    ]
+  },
+  "recipe_molten_xenoferrite": {
+    "id": "recipe_molten_xenoferrite",
+    "wikiTitle": "Recipe/Molten Xenoferrite",
+    "name": "Molten Xenoferrite",
+    "craftedIn": "smelter",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "xenoferrite_ore": 640.0,
+      "coked_ignium": 320.0,
+      "mineral_rocks": 128.0
+    },
+    "outputs": {
+      "molten_xenoferrite": 5760.0,
+      "blast_furnace_slag": 640.0
+    },
+    "craftersSeen": [
+      "Blast Furnace Base"
+    ]
+  },
+  "recipe_monument_base": {
+    "id": "recipe_monument_base",
+    "wikiTitle": "Recipe/Monument Base",
+    "name": "Monument Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "concrete": 50.0
+    },
+    "outputs": {
+      "monument_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_chair": {
+    "id": "recipe_office_chair",
+    "wikiTitle": "Recipe/Office Chair",
+    "name": "Office Chair",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "office_chair": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_couch": {
+    "id": "recipe_office_couch",
+    "wikiTitle": "Recipe/Office Couch",
+    "name": "Office Couch",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0
+    },
+    "outputs": {
+      "office_couch": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_desk": {
+    "id": "recipe_office_desk",
+    "wikiTitle": "Recipe/Office Desk",
+    "name": "Office Desk",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "office_desk": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_file_cabinet": {
+    "id": "recipe_office_file_cabinet",
+    "wikiTitle": "Recipe/Office File Cabinet",
+    "name": "Office File Cabinet",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0
+    },
+    "outputs": {
+      "office_file_cabinet": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_nameplate": {
+    "id": "recipe_office_nameplate",
+    "wikiTitle": "Recipe/Office Nameplate",
+    "name": "Office Nameplate",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "office_nameplate": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_plant": {
+    "id": "recipe_office_plant",
+    "wikiTitle": "Recipe/Office Plant",
+    "name": "Office Plant",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "office_plant": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_statue": {
+    "id": "recipe_office_statue",
+    "wikiTitle": "Recipe/Office Statue",
+    "name": "Office Statue",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 3.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "office_statue": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_table": {
+    "id": "recipe_office_table",
+    "wikiTitle": "Recipe/Office Table",
+    "name": "Office Table",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0
+    },
+    "outputs": {
+      "office_table": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_office_wall_plaque": {
+    "id": "recipe_office_wall_plaque",
+    "wikiTitle": "Recipe/Office Wall Plaque",
+    "name": "Office Wall Plaque",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "biomass": 1.0
+    },
+    "outputs": {
+      "office_wall_plaque": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_olumic_acid": {
+    "id": "recipe_olumic_acid",
+    "wikiTitle": "Recipe/Olumic Acid",
+    "name": "Olumic Acid",
+    "craftedIn": "chemical_processor",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "ignium_powder": 16.0,
+      "olumite_gas": 75.0,
+      "water": 25.0
+    },
+    "outputs": {
+      "olumic_acid": 40.0
+    },
+    "craftersSeen": [
+      "Chemical Processor"
+    ]
+  },
+  "recipe_olumite_refining_liquid_polymer": {
+    "id": "recipe_olumite_refining_liquid_polymer",
+    "wikiTitle": "Recipe/Olumite Refining Liquid Polymer",
+    "name": "Olumite Refining Liquid Polymer",
+    "craftedIn": "distillation_column",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "crude_olumite": 100.0
+    },
+    "outputs": {
+      "liquid_polymer": 75.0,
+      "waste_gas": 50.0
+    },
+    "craftersSeen": [
+      "Distillation Column"
+    ]
+  },
+  "recipe_olumite_refining_low_density_olumite": {
+    "id": "recipe_olumite_refining_low_density_olumite",
+    "wikiTitle": "Recipe/Olumite Refining Low Density Olumite",
+    "name": "Olumite Refining Low Density Olumite",
+    "craftedIn": "distillation_column",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "crude_olumite": 100.0
+    },
+    "outputs": {
+      "low_density_olumite": 100.0,
+      "waste_gas": 25.0
+    },
+    "craftersSeen": [
+      "Distillation Column"
+    ]
+  },
+  "recipe_olumite_refining_olumite_gas": {
+    "id": "recipe_olumite_refining_olumite_gas",
+    "wikiTitle": "Recipe/Olumite Refining Olumite Gas",
+    "name": "Olumite Refining Olumite Gas",
+    "craftedIn": "distillation_column",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "crude_olumite": 100.0
+    },
+    "outputs": {
+      "olumite_gas": 90.0,
+      "waste_gas": 10.0
+    },
+    "craftersSeen": [
+      "Distillation Column"
+    ]
+  },
+  "recipe_ore_scanner_handheld": {
+    "id": "recipe_ore_scanner_handheld",
+    "wikiTitle": "Recipe/Ore Scanner (Handheld)",
+    "name": "Ore Scanner (Handheld)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "xenoferrite_plates": 4.0,
+      "electronic_components": 20.0
+    },
+    "outputs": {
+      "ore_scanner": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_ore_vein_miner": {
+    "id": "recipe_ore_vein_miner",
+    "wikiTitle": "Recipe/Ore Vein Miner",
+    "name": "Ore Vein Miner",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "machinery_parts": 10.0,
+      "electronic_components": 5.0
+    },
+    "outputs": {
+      "ore_vein_miner": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_paint": {
+    "id": "recipe_paint",
+    "wikiTitle": "Recipe/Paint",
+    "name": "Paint",
+    "craftedIn": "chemical_processor",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "low_density_olumite": 50.0,
+      "olumite_gas": 50.0,
+      "water": 50.0
+    },
+    "outputs": {
+      "paint": 100.0
+    },
+    "craftersSeen": [
+      "Chemical Processor"
+    ]
+  },
+  "recipe_paint_roller": {
+    "id": "recipe_paint_roller",
+    "wikiTitle": "Recipe/Paint Roller",
+    "name": "Paint Roller",
+    "craftedIn": "hand",
+    "baseTimeSec": 2.0,
+    "inputs": {
+      "biomass": 10.0,
+      "technum_rods": 1.0,
+      "machinery_parts": 1.0
+    },
+    "outputs": {
+      "paint_roller": 1.0
+    },
+    "craftersSeen": [
+      "Character"
+    ]
+  },
+  "recipe_personal_assistant_robot_arm": {
+    "id": "recipe_personal_assistant_robot_arm",
+    "wikiTitle": "Recipe/Personal Assistant Robot Arm",
+    "name": "Personal Assistant Robot Arm",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "robot_parts": 1.0,
+      "hydraulic_piston": 1.0,
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "personal_assistant_robot_arm": 1.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_personal_assistant_robot_head": {
+    "id": "recipe_personal_assistant_robot_head",
+    "wikiTitle": "Recipe/Personal Assistant Robot Head",
+    "name": "Personal Assistant Robot Head",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "robot_parts": 1.0,
+      "cpu": 2.0,
+      "glass": 1.0
+    },
+    "outputs": {
+      "personal_assistant_robot_head": 1.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_personal_assistant_robot_leg": {
+    "id": "recipe_personal_assistant_robot_leg",
+    "wikiTitle": "Recipe/Personal Assistant Robot Leg",
+    "name": "Personal Assistant Robot Leg",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "robot_parts": 1.0,
+      "hydraulic_piston": 1.0,
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "personal_assistant_robot_leg": 1.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_personal_assistant_robot_torso": {
+    "id": "recipe_personal_assistant_robot_torso",
+    "wikiTitle": "Recipe/Personal Assistant Robot Torso",
+    "name": "Personal Assistant Robot Torso",
+    "craftedIn": "assembler",
+    "baseTimeSec": 15.0,
+    "inputs": {
+      "robot_parts": 1.0,
+      "firmarlite_sheet": 2.0,
+      "circuit_board": 1.0,
+      "energy_cell": 1.0
+    },
+    "outputs": {
+      "personal_assistant_robot_torso": 1.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_pipe": {
+    "id": "recipe_pipe",
+    "wikiTitle": "Recipe/Pipe",
+    "name": "Pipe",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "steel_beams": 2.0
+    },
+    "outputs": {
+      "pipe": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_pipe_intake": {
+    "id": "recipe_pipe_intake",
+    "wikiTitle": "Recipe/Pipe Intake",
+    "name": "Pipe Intake",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "pipe": 1.0,
+      "machinery_parts": 5.0
+    },
+    "outputs": {
+      "liquid_intake": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_pipeline": {
+    "id": "recipe_pipeline",
+    "wikiTitle": "Recipe/Pipeline",
+    "name": "Pipeline",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "steel_beams": 8.0
+    },
+    "outputs": {
+      "pipeline": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_plumber_tool": {
+    "id": "recipe_plumber_tool",
+    "wikiTitle": "Recipe/Plumber Tool",
+    "name": "Plumber Tool",
+    "craftedIn": "hand",
+    "baseTimeSec": 2.0,
+    "inputs": {
+      "biomass": 5.0
+    },
+    "outputs": {
+      "plumber_tool": 1.0
+    },
+    "craftersSeen": [
+      "Character"
+    ]
+  },
+  "recipe_polymer_board": {
+    "id": "recipe_polymer_board",
+    "wikiTitle": "Recipe/Polymer Board",
+    "name": "Polymer Board",
+    "craftedIn": "casting_machine",
+    "baseTimeSec": 2.0,
+    "inputs": {
+      "liquid_polymer": 5.0
+    },
+    "outputs": {
+      "polymer_board": 1.0
+    },
+    "craftersSeen": [
+      "Casting Machine"
+    ]
+  },
+  "recipe_portable_fuel": {
+    "id": "recipe_portable_fuel",
+    "wikiTitle": "Recipe/Portable Fuel",
+    "name": "Portable Fuel",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "xenoferrite_plates": 1.0,
+      "liquid_fuel": 30.0
+    },
+    "outputs": {
+      "portable_fuel": 1.0
+    },
+    "craftersSeen": [
+      "Fluid Assembler I"
+    ]
+  },
+  "recipe_power_line": {
+    "id": "recipe_power_line",
+    "wikiTitle": "Recipe/Power Line",
+    "name": "Power Line",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "wire_coil": 2.0
+    },
+    "outputs": {
+      "power_line": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_power_pole_large": {
+    "id": "recipe_power_pole_large",
+    "wikiTitle": "Recipe/Power Pole (Large)",
+    "name": "Power Pole (Large)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "steel_beams": 10.0,
+      "electronic_components": 5.0,
+      "polymer_board": 5.0
+    },
+    "outputs": {
+      "power_pole_large": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_power_pole_small": {
+    "id": "recipe_power_pole_small",
+    "wikiTitle": "Recipe/Power Pole (Small)",
+    "name": "Power Pole (Small)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "power_pole_small": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_power_pole_wall_mounted": {
+    "id": "recipe_power_pole_wall_mounted",
+    "wikiTitle": "Recipe/Power Pole (Wall-Mounted)",
+    "name": "Power Pole (Wall-Mounted)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 4.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "power_pole_wall_mounted": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_pump_pipelines": {
+    "id": "recipe_pump_pipelines",
+    "wikiTitle": "Recipe/Pump (Pipelines)",
+    "name": "Pump (Pipelines)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 6.0,
+      "machinery_parts": 5.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "pump_pipelines": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_pump_pipes": {
+    "id": "recipe_pump_pipes",
+    "wikiTitle": "Recipe/Pump (Pipes)",
+    "name": "Pump (Pipes)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_plates": 6.0,
+      "machinery_parts": 5.0,
+      "electronic_components": 2.0
+    },
+    "outputs": {
+      "pump_pipes": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_pumpjack_i": {
+    "id": "recipe_pumpjack_i",
+    "wikiTitle": "Recipe/Pumpjack I",
+    "name": "Pumpjack I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "steel_beams": 12.0,
+      "pipe": 8.0,
+      "advanced_machinery_parts": 5.0,
+      "electronic_components": 5.0
+    },
+    "outputs": {
+      "pumpjack_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_radio_tower_base": {
+    "id": "recipe_radio_tower_base",
+    "wikiTitle": "Recipe/Radio Tower Base",
+    "name": "Radio Tower Base",
+    "craftedIn": "assembler",
+    "baseTimeSec": 20.0,
+    "inputs": {
+      "xenoferrite_plates": 200.0,
+      "steel_beams": 100.0,
+      "advanced_machinery_parts": 25.0,
+      "circuit_board": 25.0
+    },
+    "outputs": {
+      "radio_tower_base": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_railings": {
+    "id": "recipe_railings",
+    "wikiTitle": "Recipe/Railings",
+    "name": "Railings",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "outputs": {
+      "railings": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_research_server": {
+    "id": "recipe_research_server",
+    "wikiTitle": "Recipe/Research Server",
+    "name": "Research Server",
+    "craftedIn": "assembler",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "xenoferrite_plates": 20.0,
+      "electronic_components": 10.0,
+      "technum_rods": 20.0
+    },
+    "outputs": {
+      "research_server": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_robot_parts": {
+    "id": "recipe_robot_parts",
+    "wikiTitle": "Recipe/Robot Parts",
+    "name": "Robot Parts",
+    "craftedIn": "assembler",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "firmarlite_sheet": 2.0,
+      "advanced_machinery_parts": 1.0,
+      "electronic_components": 4.0,
+      "polymer_board": 2.0
+    },
+    "outputs": {
+      "robot_parts": 2.0
+    },
+    "craftersSeen": [
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_rocky_desert_seed_plants": {
+    "id": "recipe_rocky_desert_seed_plants",
+    "wikiTitle": "Recipe/Rocky Desert Seed (Plants)",
+    "name": "Rocky Desert Seed (Plants)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "rocky_desert_seed_plants": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "rocky_desert_seed_plants": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_rocky_desert_seed_trees": {
+    "id": "recipe_rocky_desert_seed_trees",
+    "wikiTitle": "Recipe/Rocky Desert Seed (Trees)",
+    "name": "Rocky Desert Seed (Trees)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "rocky_desert_seed_trees": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "rocky_desert_seed_trees": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_sales_warehouse": {
+    "id": "recipe_sales_warehouse",
+    "wikiTitle": "Recipe/Sales Warehouse",
+    "name": "Sales Warehouse",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 200.0,
+      "advanced_machinery_parts": 50.0,
+      "circuit_board": 50.0,
+      "polymer_board": 100.0
+    },
+    "outputs": {
+      "sales_warehouse": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_sales_warehouse_assembly_line": {
+    "id": "recipe_sales_warehouse_assembly_line",
+    "wikiTitle": "Recipe/Sales Warehouse (Assembly Line)",
+    "name": "Sales Warehouse (Assembly Line)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "steel_beams": 200.0,
+      "advanced_machinery_parts": 50.0,
+      "circuit_board": 50.0,
+      "polymer_board": 100.0,
+      "hydraulic_piston": 20.0
+    },
+    "outputs": {
+      "sales_warehouse_assembly_line": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_sandy_desert_seed_plants": {
+    "id": "recipe_sandy_desert_seed_plants",
+    "wikiTitle": "Recipe/Sandy Desert Seed (Plants)",
+    "name": "Sandy Desert Seed (Plants)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "sandy_desert_seed_plants": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "sandy_desert_seed_plants": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_sandy_desert_seed_trees": {
+    "id": "recipe_sandy_desert_seed_trees",
+    "wikiTitle": "Recipe/Sandy Desert Seed (Trees)",
+    "name": "Sandy Desert Seed (Trees)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "sandy_desert_seed_trees": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "sandy_desert_seed_trees": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_science_pack_i": {
+    "id": "recipe_science_pack_i",
+    "wikiTitle": "Recipe/Science Pack I",
+    "name": "Science Pack I",
+    "craftedIn": "assembler",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "machinery_parts": 10.0,
+      "technum_rods": 8.0
+    },
+    "outputs": {
+      "science_pack_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_science_pack_ii": {
+    "id": "recipe_science_pack_ii",
+    "wikiTitle": "Recipe/Science Pack II",
+    "name": "Science Pack II",
+    "craftedIn": "assembler",
+    "baseTimeSec": 30.0,
+    "inputs": {
+      "conveyor_i": 6.0,
+      "building_block": 12.0
+    },
+    "outputs": {
+      "science_pack_ii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_science_pack_iii": {
+    "id": "recipe_science_pack_iii",
+    "wikiTitle": "Recipe/Science Pack III",
+    "name": "Science Pack III",
+    "craftedIn": "assembler",
+    "baseTimeSec": 60.0,
+    "inputs": {
+      "advanced_machinery_parts": 5.0,
+      "concrete": 12.0,
+      "pipe": 4.0
+    },
+    "outputs": {
+      "science_pack_iii": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_science_pack_iv": {
+    "id": "recipe_science_pack_iv",
+    "wikiTitle": "Recipe/Science Pack IV",
+    "name": "Science Pack IV",
+    "craftedIn": "assembler",
+    "baseTimeSec": 60.0,
+    "inputs": {
+      "circuit_board": 12.0,
+      "energy_cell": 12.0,
+      "firmarlite_bar": 4.0
+    },
+    "outputs": {
+      "science_pack_iv": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_science_pack_v": {
+    "id": "recipe_science_pack_v",
+    "wikiTitle": "Recipe/Science Pack V",
+    "name": "Science Pack V",
+    "craftedIn": "assembler",
+    "baseTimeSec": 120.0,
+    "inputs": {
+      "robot_parts": 4.0,
+      "hydraulic_piston": 12.0,
+      "cpu": 1.0
+    },
+    "outputs": {
+      "science_pack_v": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_sign": {
+    "id": "recipe_sign",
+    "wikiTitle": "Recipe/Sign",
+    "name": "Sign",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_plates": 4.0
+    },
+    "outputs": {
+      "sign": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_smelter_small": {
+    "id": "recipe_smelter_small",
+    "wikiTitle": "Recipe/Smelter (Small)",
+    "name": "Smelter (Small)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "machinery_parts": 4.0,
+      "electronic_components": 4.0
+    },
+    "outputs": {
+      "smelter_small": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_solar_panel_large": {
+    "id": "recipe_solar_panel_large",
+    "wikiTitle": "Recipe/Solar Panel (Large)",
+    "name": "Solar Panel (Large)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "xenoferrite_plates": 30.0,
+      "advanced_machinery_parts": 5.0,
+      "circuit_board": 10.0,
+      "energy_cell": 10.0,
+      "glass": 10.0
+    },
+    "outputs": {
+      "solar_panel_large": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_solar_panel_small": {
+    "id": "recipe_solar_panel_small",
+    "wikiTitle": "Recipe/Solar Panel (Small)",
+    "name": "Solar Panel (Small)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "electronic_components": 10.0,
+      "glass": 10.0,
+      "energy_cell": 5.0
+    },
+    "outputs": {
+      "solar_panel_small": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_space_station_requester_warehouse": {
+    "id": "recipe_space_station_requester_warehouse",
+    "wikiTitle": "Recipe/Space Station Requester Warehouse",
+    "name": "Space Station Requester Warehouse",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "steel_beams": 200.0,
+      "advanced_machinery_parts": 50.0,
+      "circuit_board": 50.0,
+      "polymer_board": 100.0
+    },
+    "outputs": {
+      "space_station_requester_warehouse": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_stairs": {
+    "id": "recipe_stairs",
+    "wikiTitle": "Recipe/Stairs",
+    "name": "Stairs",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_plates": 2.0
+    },
+    "outputs": {
+      "stairs": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_steam_turbine": {
+    "id": "recipe_steam_turbine",
+    "wikiTitle": "Recipe/Steam Turbine",
+    "name": "Steam Turbine",
+    "craftedIn": "assembler",
+    "baseTimeSec": 8.0,
+    "inputs": {
+      "pipe": 10.0,
+      "machinery_parts": 40.0,
+      "steel_beams": 25.0,
+      "electronic_components": 25.0
+    },
+    "outputs": {
+      "steam_turbine": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_steel_beams_t1": {
+    "id": "recipe_steel_beams_t1",
+    "wikiTitle": "Recipe/Steel Beams (T1)",
+    "name": "Steel Beams (T1)",
+    "craftedIn": "smelter",
+    "baseTimeSec": 6.0,
+    "inputs": {
+      "xenoferrite_ignium_ore_blend": 1.0
+    },
+    "outputs": {
+      "steel_beams": 1.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter",
+      "Smelter (Small)"
+    ]
+  },
+  "recipe_steel_beams_t2": {
+    "id": "recipe_steel_beams_t2",
+    "wikiTitle": "Recipe/Steel Beams (T2)",
+    "name": "Steel Beams (T2)",
+    "craftedIn": "smelter",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "advanced_xenoferrite_ignium_ore_blend": 1.0
+    },
+    "outputs": {
+      "steel_beams": 2.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter"
+    ]
+  },
+  "recipe_tank": {
+    "id": "recipe_tank",
+    "wikiTitle": "Recipe/Tank",
+    "name": "Tank",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 10.0,
+      "steel_beams": 20.0,
+      "advanced_machinery_parts": 5.0
+    },
+    "outputs": {
+      "tank_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_technum_ore": {
+    "id": "recipe_technum_ore",
+    "wikiTitle": "Recipe/Technum Ore",
+    "name": "Technum Ore",
+    "craftedIn": "crusher",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "technum_ore_rubble": 1.0
+    },
+    "outputs": {
+      "technum_ore": 1.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_technum_rods": {
+    "id": "recipe_technum_rods",
+    "wikiTitle": "Recipe/Technum Rods",
+    "name": "Technum Rods",
+    "craftedIn": null,
+    "baseTimeSec": null,
+    "inputs": {
+      "technum_ore_rubble": 2.0
+    },
+    "outputs": {
+      "technum_rods": 1.0
+    },
+    "craftersSeen": []
+  },
+  "recipe_technum_rods_tier_1": {
+    "id": "recipe_technum_rods_tier_1",
+    "wikiTitle": "Recipe/Technum Rods (Tier 1)",
+    "name": "Technum Rods (Tier 1)",
+    "craftedIn": "smelter",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "technum_ore_rubble": 1.0
+    },
+    "outputs": {
+      "technum_rods": 1.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter",
+      "Smelter (Small)"
+    ]
+  },
+  "recipe_technum_rods_tier_2": {
+    "id": "recipe_technum_rods_tier_2",
+    "wikiTitle": "Recipe/Technum Rods (Tier 2)",
+    "name": "Technum Rods (Tier 2)",
+    "craftedIn": "smelter",
+    "baseTimeSec": 6.0,
+    "inputs": {
+      "technum_ore": 2.0
+    },
+    "outputs": {
+      "technum_rods": 3.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter",
+      "Smelter (Small)"
+    ]
+  },
+  "recipe_technum_rods_tier_3": {
+    "id": "recipe_technum_rods_tier_3",
+    "wikiTitle": "Recipe/Technum Rods (Tier 3)",
+    "name": "Technum Rods (Tier 3)",
+    "craftedIn": "casting_machine",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "molten_technum": 15.0
+    },
+    "outputs": {
+      "technum_rods": 5.0
+    },
+    "craftersSeen": [
+      "Casting Machine"
+    ]
+  },
+  "recipe_telluxite_ingot": {
+    "id": "recipe_telluxite_ingot",
+    "wikiTitle": "Recipe/Telluxite Ingot",
+    "name": "Telluxite Ingot",
+    "craftedIn": "smelter",
+    "baseTimeSec": 4.0,
+    "inputs": {
+      "telluxite_ore": 4.0
+    },
+    "outputs": {
+      "telluxite_ingot": 1.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter"
+    ]
+  },
+  "recipe_telluxite_ore": {
+    "id": "recipe_telluxite_ore",
+    "wikiTitle": "Recipe/Telluxite Ore",
+    "name": "Telluxite Ore",
+    "craftedIn": "crusher",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "telluxite_ore_rubble": 4.0
+    },
+    "outputs": {
+      "telluxite_ore": 1.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_telluxite_wafer": {
+    "id": "recipe_telluxite_wafer",
+    "wikiTitle": "Recipe/Telluxite Wafer",
+    "name": "Telluxite Wafer",
+    "craftedIn": "casting_machine",
+    "baseTimeSec": 24.0,
+    "inputs": {
+      "liquid_telluxite": 400.0
+    },
+    "outputs": {
+      "telluxite_wafer": 1.0
+    },
+    "craftersSeen": [
+      "Casting Machine"
+    ]
+  },
+  "recipe_transformer_large": {
+    "id": "recipe_transformer_large",
+    "wikiTitle": "Recipe/Transformer (Large)",
+    "name": "Transformer (Large)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 10.0,
+    "inputs": {
+      "xenoferrite_plates": 25.0,
+      "electronic_components": 10.0,
+      "circuit_board": 10.0
+    },
+    "outputs": {
+      "transformer_large": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_transformer_small": {
+    "id": "recipe_transformer_small",
+    "wikiTitle": "Recipe/Transformer (Small)",
+    "name": "Transformer (Small)",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "xenoferrite_plates": 15.0,
+      "electronic_components": 10.0,
+      "technum_rods": 15.0
+    },
+    "outputs": {
+      "transformer_small": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_transport_ship_port": {
+    "id": "recipe_transport_ship_port",
+    "wikiTitle": "Recipe/Transport Ship Port",
+    "name": "Transport Ship Port",
+    "craftedIn": "assembler",
+    "baseTimeSec": 12.0,
+    "inputs": {
+      "steel_beams": 400.0,
+      "advanced_machinery_parts": 200.0,
+      "circuit_board": 100.0,
+      "energy_cell": 40.0,
+      "polymer_board": 200.0
+    },
+    "outputs": {
+      "transport_ship_port": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_tropical_rainforest_seed_plants": {
+    "id": "recipe_tropical_rainforest_seed_plants",
+    "wikiTitle": "Recipe/Tropical Rainforest Seed (Plants)",
+    "name": "Tropical Rainforest Seed (Plants)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "tropical_rainforest_seed_plants": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "tropical_rainforest_seed_plants": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_tropical_rainforest_seed_trees": {
+    "id": "recipe_tropical_rainforest_seed_trees",
+    "wikiTitle": "Recipe/Tropical Rainforest Seed (Trees)",
+    "name": "Tropical Rainforest Seed (Trees)",
+    "craftedIn": "greenhouse",
+    "baseTimeSec": 300.0,
+    "inputs": {
+      "tropical_rainforest_seed_trees": 1.0,
+      "mineral_rocks": 1.0,
+      "water": 250.0
+    },
+    "outputs": {
+      "tropical_rainforest_seed_trees": 3.0
+    },
+    "craftersSeen": [
+      "Greenhouse"
+    ]
+  },
+  "recipe_walkway": {
+    "id": "recipe_walkway",
+    "wikiTitle": "Recipe/Walkway",
+    "name": "Walkway",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_plates": 3.0
+    },
+    "outputs": {
+      "walkway": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_wall_light": {
+    "id": "recipe_wall_light",
+    "wikiTitle": "Recipe/Wall Light",
+    "name": "Wall Light",
+    "craftedIn": "assembler",
+    "baseTimeSec": 2.0,
+    "inputs": {
+      "xenoferrite_plates": 2.0,
+      "electronic_components": 1.0
+    },
+    "outputs": {
+      "wall_light_i": 1.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_wire_coil": {
+    "id": "recipe_wire_coil",
+    "wikiTitle": "Recipe/Wire Coil",
+    "name": "Wire Coil",
+    "craftedIn": "assembler",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "technum_rods": 1.0
+    },
+    "outputs": {
+      "wire_coil": 2.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_wooden_blocks": {
+    "id": "recipe_wooden_blocks",
+    "wikiTitle": "Recipe/Wooden Blocks",
+    "name": "Wooden Blocks",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "biomass": 1.0
+    },
+    "outputs": {
+      "wooden_blocks": 5.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_wooden_decor_blocks": {
+    "id": "recipe_wooden_decor_blocks",
+    "wikiTitle": "Recipe/Wooden Decor Blocks",
+    "name": "Wooden Decor Blocks",
+    "craftedIn": "assembler",
+    "baseTimeSec": 5.0,
+    "inputs": {
+      "biomass": 1.0
+    },
+    "outputs": {
+      "wooden_decor_blocks": 5.0
+    },
+    "craftersSeen": [
+      "Character",
+      "Assembler I",
+      "Assembler II",
+      "Assembler III"
+    ]
+  },
+  "recipe_xenoferrite_ore": {
+    "id": "recipe_xenoferrite_ore",
+    "wikiTitle": "Recipe/Xenoferrite Ore",
+    "name": "Xenoferrite Ore",
+    "craftedIn": "crusher",
+    "baseTimeSec": 1.5,
+    "inputs": {
+      "xenoferrite_ore_rubble": 1.0
+    },
+    "outputs": {
+      "xenoferrite_ore": 1.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  },
+  "recipe_xenoferrite_plates": {
+    "id": "recipe_xenoferrite_plates",
+    "wikiTitle": "Recipe/Xenoferrite Plates",
+    "name": "Xenoferrite Plates",
+    "craftedIn": null,
+    "baseTimeSec": null,
+    "inputs": {
+      "xenoferrite_ore_rubble": 2.0
+    },
+    "outputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "craftersSeen": []
+  },
+  "recipe_xenoferrite_plates_tier_1": {
+    "id": "recipe_xenoferrite_plates_tier_1",
+    "wikiTitle": "Recipe/Xenoferrite Plates (Tier 1)",
+    "name": "Xenoferrite Plates (Tier 1)",
+    "craftedIn": "smelter",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_ore_rubble": 1.0
+    },
+    "outputs": {
+      "xenoferrite_plates": 1.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter",
+      "Smelter (Small)"
+    ]
+  },
+  "recipe_xenoferrite_plates_tier_2": {
+    "id": "recipe_xenoferrite_plates_tier_2",
+    "wikiTitle": "Recipe/Xenoferrite Plates (Tier 2)",
+    "name": "Xenoferrite Plates (Tier 2)",
+    "craftedIn": "smelter",
+    "baseTimeSec": 6.0,
+    "inputs": {
+      "xenoferrite_ore": 2.0
+    },
+    "outputs": {
+      "xenoferrite_plates": 3.0
+    },
+    "craftersSeen": [
+      "Advanced Smelter",
+      "Smelter (Small)"
+    ]
+  },
+  "recipe_xenoferrite_plates_tier_3": {
+    "id": "recipe_xenoferrite_plates_tier_3",
+    "wikiTitle": "Recipe/Xenoferrite Plates (Tier 3)",
+    "name": "Xenoferrite Plates (Tier 3)",
+    "craftedIn": "casting_machine",
+    "baseTimeSec": 7.5,
+    "inputs": {
+      "molten_xenoferrite": 15.0
+    },
+    "outputs": {
+      "xenoferrite_plates": 5.0
+    },
+    "craftersSeen": [
+      "Casting Machine"
+    ]
+  },
+  "recipe_xenoferrite_ignium_ore_blend": {
+    "id": "recipe_xenoferrite_ignium_ore_blend",
+    "wikiTitle": "Recipe/Xenoferrite-Ignium Ore Blend",
+    "name": "Xenoferrite-Ignium Ore Blend",
+    "craftedIn": "crusher",
+    "baseTimeSec": 3.0,
+    "inputs": {
+      "xenoferrite_ore_rubble": 4.0,
+      "ignium_ore_rubble": 2.0
+    },
+    "outputs": {
+      "xenoferrite_ignium_ore_blend": 1.0
+    },
+    "craftersSeen": [
+      "Crusher I",
+      "Crusher II"
+    ]
+  }
+}

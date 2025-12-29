@@ -381,7 +381,6 @@ function ProductionGraph({
   const [isDragging, setIsDragging] = useState(false);
   const [snapEnabled, setSnapEnabled] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
-  const elkRef = useRef<any>(null);
   const toPngRef = useRef<((node: HTMLElement, options?: any) => Promise<string>) | null>(null);
   const rafRef = useRef<number>();
   const movedRef = useRef<Record<string, boolean>>({});
@@ -392,27 +391,6 @@ function ProductionGraph({
   );
 
   const lanePalette = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#38bdf8', '#c084fc'];
-
-  const loadElk = useCallback(async () => {
-    if (elkRef.current) return elkRef.current;
-    const candidates = [
-      'elkjs/lib/elk.bundled.js',
-      'elkjs',
-      '@elkjs/elkjs/lib/elk.bundled.js',
-      '@elkjs/elkjs',
-    ];
-    for (const path of candidates) {
-      try {
-        const mod = await import(/* @vite-ignore */ path);
-        const ElkCtor = (mod as any).default || (mod as any).ELK || mod;
-        elkRef.current = new ElkCtor();
-        return elkRef.current;
-      } catch (e) {
-        continue;
-      }
-    }
-    return null;
-  }, []);
 
   const loadToPng = useCallback(async () => {
     if (toPngRef.current) return toPngRef.current;
@@ -431,117 +409,26 @@ function ProductionGraph({
 
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
-      const elk = await loadElk();
-      if (!elk) {
-        // Fallback simple layout to avoid blank screen if ELK cannot load.
-        const offsetDepth = -minDepth;
-        const columns: Record<number, GraphNode[]> = {};
-        graphNodes.forEach((n) => {
-          const col = n.depth + offsetDepth;
-          columns[col] ??= [];
-          columns[col].push(n);
-        });
-        Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-        const posMap: Record<string, { x: number; y: number; lane: number }> = {};
-        Object.entries(columns).forEach(([colStr, list]) => {
-          const col = Number(colStr);
-          list.forEach((node, index) => {
-            posMap[node.id] = { x: col * (CARD_WIDTH + 120), y: index * (CARD_HEIGHT + 80), lane: col };
-          });
-        });
-        const bundled: GraphEdge[] = [];
-        const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
-        const temp = new Map<string, GraphEdge>();
-        graphEdges.forEach((e) => {
-          const k = key(e);
-          const existing = temp.get(k);
-          if (existing) existing.perMinute += e.perMinute;
-          else temp.set(k, { ...e });
-        });
-        temp.forEach((v) => bundled.push(v));
-        const bySource: Record<string, GraphEdge[]> = {};
-        bundled.forEach((e) => {
-          bySource[e.from] ??= [];
-          bySource[e.from].push(e);
-        });
-        const maxRate = Math.max(...bundled.map((e) => e.perMinute), 1);
-        setNodes(
-          graphNodes.map((n) => ({
-            id: n.id,
-            position: posMap[n.id] ?? { x: 0, y: 0 },
-            data: { ...n, color: hashColor(n.id) },
-            type: 'cardNode',
-            draggable: true,
-            selectable: false,
-            style: { willChange: 'transform' },
-          })),
-        );
-        setEdges(
-          bundled.map((e) => {
-            const siblings = bySource[e.from] ?? [];
-            const idx = siblings.findIndex((s) => s.to === e.to && s.itemId === e.itemId);
-            const offset = (idx - (siblings.length - 1) / 2) * 8;
-            const color = hashColor(e.from);
-            const widthScale = widthFromThroughput(e.perMinute);
-            return {
-              id: `${e.from}-${e.to}-${e.itemId}`,
-              source: e.from,
-              target: e.to,
-              type: 'flowEdge',
-              data: {
-                hoverLabel: `${e.itemName}: ${formatDisplay(e.perMinute)} / min`,
-                color,
-                width: widthScale,
-                offset,
-                throughput: e.perMinute,
-                light: false,
-              },
-              markerEnd: { type: MarkerType.ArrowClosed, color },
-              style: { strokeWidth: widthScale, stroke: color },
-              sourceHandle: 'out',
-              targetHandle: 'in',
-            };
-          }),
-        );
-        return;
-      }
-      const elkGraph = {
-        id: 'root',
-        layoutOptions: {
-          'elk.algorithm': 'layered',
-          'elk.direction': 'RIGHT',
-          'elk.spacing.nodeNodeBetweenLayers': '260',
-          'elk.spacing.nodeNode': '120',
-          'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-          'elk.edgeRouting': 'SPLINES',
-        },
-        children: graphNodes.map((n) => ({
-          id: n.id,
-          width: CARD_WIDTH,
-          height: CARD_HEIGHT,
-          layoutOptions: {
-            'elk.position.fixed': respectMoved && movedRef.current[n.id] ? 'true' : 'false',
-          },
-        })),
-        edges: graphEdges.map((e, idx) => ({
-          id: e.itemId + idx,
-          sources: [e.from],
-          targets: [e.to],
-        })),
-      };
-
-      let layout;
-      try {
-        layout = await elk.layout(elkGraph as any);
-      } catch (err) {
-        return;
-      }
+      const offsetDepth = -minDepth;
+      const columns: Record<number, GraphNode[]> = {};
+      graphNodes.forEach((n) => {
+        const col = n.depth + offsetDepth;
+        columns[col] ??= [];
+        columns[col].push(n);
+      });
+      Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
       const posMap: Record<string, { x: number; y: number; lane: number }> = {};
-      layout.children?.forEach((c) => {
-        posMap[c.id] = { x: c.x ?? 0, y: c.y ?? 0, lane: Math.round((c.x ?? 0) / (CARD_WIDTH + 120)) };
+      Object.entries(columns).forEach(([colStr, list]) => {
+        const col = Number(colStr);
+        list.forEach((node, index) => {
+          posMap[node.id] = {
+            x: col * (CARD_WIDTH + 120),
+            y: index * (CARD_HEIGHT + 80),
+            lane: col,
+          };
+        });
       });
 
-      // bundle edges
       const bundled: GraphEdge[] = [];
       const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
       const temp = new Map<string, GraphEdge>();
@@ -578,7 +465,6 @@ function ProductionGraph({
         const siblings = bySource[e.from] ?? [];
         const idx = siblings.findIndex((s) => s.to === e.to && s.itemId === e.itemId);
         const offset = (idx - (siblings.length - 1) / 2) * 8;
-        const lane = posMap[e.from]?.lane ?? 0;
         const color = hashColor(e.from);
         const widthScale = widthFromThroughput(e.perMinute);
         return {
@@ -610,7 +496,7 @@ function ProductionGraph({
       setNodes(rfNodes);
       setEdges(rfEdges);
     },
-    [elk, graphNodes, graphEdges],
+    [graphNodes, graphEdges, minDepth],
   );
 
   const [nodes, setNodes] = useState<Node<GraphNode>[]>([]);

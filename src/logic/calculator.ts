@@ -36,6 +36,10 @@ export type CalculationResult = {
   totals: Record<string, number>;
 };
 
+function formatNumber(value: number) {
+  return Number.parseFloat(value.toFixed(3));
+}
+
 export function buildCalculation(
   itemId: string,
   desiredPerMin: number,
@@ -135,10 +139,10 @@ export function buildCalculation(
       recipeId: recipe.id,
       craftedIn,
       baseTimeSec: recipe.baseTimeSec ?? null,
-      craftsPerMinNeeded,
-      machinesNeeded,
+      craftsPerMinNeeded: formatNumber(craftsPerMinNeeded),
+      machinesNeeded: machinesNeeded !== undefined ? formatNumber(machinesNeeded) : undefined,
       outputPerCraft: outputAmount,
-      actualOutputPerMin,
+      actualOutputPerMin: actualOutputPerMin !== undefined ? formatNumber(actualOutputPerMin) : undefined,
       inputs: [],
       warnings,
     };

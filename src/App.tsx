@@ -1,4 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import ReactFlow, {
+  Background,
+  Controls,
+  MarkerType,
+  getBezierPath,
+  useEdgesState,
+  useNodesState,
+  type EdgeProps,
+  type NodeProps,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
 import { dataBundle, extractTierInfo } from './data/data';
 import { buildProducerMap } from './logic/recipes';
 import { buildCalculation, RequirementNode } from './logic/calculator';
@@ -40,6 +51,13 @@ type GraphEdge = {
   itemId: string;
   itemName: string;
   perMinute: number;
+};
+
+type FlowEdgeData = {
+  label: string;
+  color: string;
+  width: number;
+  hoverLabel: string;
 };
 
 function SearchableSelect({
@@ -265,6 +283,52 @@ function buildGraphData(
 const CARD_WIDTH = 240;
 const CARD_HEIGHT = 130;
 
+function hashColor(input: string) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = input.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 60%, 60%)`;
+}
+
+function CardNode({ data }: NodeProps<GraphNode>) {
+  const borderColor = data.isTarget ? 'border-indigo-400 shadow-indigo-500/40' : data.stage === 'raw' ? 'border-slate-700' : 'border-slate-800';
+  return (
+    <div className={classNames('w-[240px] rounded-lg border bg-slate-900/90 p-3 shadow-lg shadow-slate-900/40', borderColor)}>
+      <p className="text-sm font-semibold text-slate-50">{data.label}</p>
+      <hr className="my-2 border-slate-800" />
+      <p className="text-xs text-slate-300">Machine: {data.machine}</p>
+      <p className="text-xs text-slate-300">Machines: {formatDisplay(data.machinesNeeded)}</p>
+      <p className="text-xs text-slate-300">Output: {formatDisplay(data.outputPerMin)} / min</p>
+    </div>
+  );
+}
+
+function FlowEdge({ id, sourceX, sourceY, targetX, targetY, data, markerEnd }: EdgeProps<FlowEdgeData>) {
+  const offset = (data as any)?.offset ?? 0;
+  const sy = sourceY + offset;
+  const ty = targetY + offset;
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY: sy,
+    targetX,
+    targetY: ty,
+    curvature: 0.25,
+  });
+  return (
+    <>
+      <path id={id} d={edgePath} fill="none" stroke={data?.color ?? '#818cf8'} strokeWidth={data?.width ?? 2} markerEnd={markerEnd} />
+      <text dy="-4" x={labelX} y={labelY} className="text-[10px] fill-indigo-100">
+        <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">
+          {data?.label}
+        </textPath>
+      </text>
+      <title>{data?.hoverLabel}</title>
+    </>
+  );
+}
+
 function ProductionGraph({
   root,
   machineLabel,
@@ -272,242 +336,137 @@ function ProductionGraph({
   root: RequirementNode;
   machineLabel: (id?: string | null) => string;
 }) {
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
-  const [collapse, setCollapse] = useState(false);
-  const [focusItem, setFocusItem] = useState('');
-
-  const { nodes, edges, minDepth, maxDepth } = useMemo(
+  const { nodes: graphNodes, edges: graphEdges, minDepth, maxDepth } = useMemo(
     () => buildGraphData(root, machineLabel, root.itemId),
     [root, machineLabel],
   );
 
-  const normalizedColumns = useMemo(() => {
-    const offsetDepth = -minDepth;
-    const cols: Record<number, GraphNode[]> = {};
-    nodes.forEach((n) => {
-      const col = n.depth + offsetDepth;
-      cols[col] ??= [];
-      cols[col].push(n);
-    });
-    Object.values(cols).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-    return cols;
-  }, [minDepth, nodes]);
+  const offsetDepth = -minDepth;
+  const columns: Record<number, GraphNode[]> = {};
+  graphNodes.forEach((n) => {
+    const col = n.depth + offsetDepth;
+    columns[col] ??= [];
+    columns[col].push(n);
+  });
+  Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
 
-  const columnCount = maxDepth - minDepth + 1;
-
-  const filteredNodes = useMemo(() => {
-    if (!collapse || focusItem) return nodes;
-    return nodes.filter((n) => n.stage === 'raw' || n.isTarget || n.stage === 'final' || n.depth === minDepth);
-  }, [collapse, focusItem, nodes, minDepth]);
-
-  const positions: Record<string, { x: number; y: number; col: number; row: number }> = {};
-  Object.entries(normalizedColumns).forEach(([colStr, list]) => {
+  const positions: Record<string, { x: number; y: number }> = {};
+  Object.entries(columns).forEach(([colStr, list]) => {
     const col = Number(colStr);
     list.forEach((node, index) => {
       positions[node.id] = {
-        x: col * (CARD_WIDTH + 100) + 40,
-        y: index * (CARD_HEIGHT + 50) + 40,
-        col,
-        row: index,
+        x: col * (CARD_WIDTH + 120) + 40,
+        y: index * (CARD_HEIGHT + 60) + 40,
       };
     });
   });
 
-  const svgWidth = columnCount * (CARD_WIDTH + 100);
-  const svgHeight =
-    Math.max(
-      ...Object.values(normalizedColumns).map((g) => (g.length === 0 ? 0 : g.length * (CARD_HEIGHT + 50) + 40)),
-    ) + 100;
-  const columnStages: Record<number, GraphNode['stage']> = {};
-  Object.entries(normalizedColumns).forEach(([colStr, list]) => {
-    const stageCount: Record<GraphNode['stage'], number> = { raw: 0, smelting: 0, assembly: 0, final: 0 };
-    list.forEach((n) => {
-      stageCount[n.stage] = (stageCount[n.stage] ?? 0) + 1;
-    });
-    const dominant = (Object.entries(stageCount).sort((a, b) => b[1] - a[1])[0] ?? ['raw'])[0] as GraphNode['stage'];
-    columnStages[Number(colStr)] = dominant;
+  const width = (maxDepth - minDepth + 1) * (CARD_WIDTH + 120) + 200;
+  const height = Math.max(...Object.values(columns).map((g) => g.length * (CARD_HEIGHT + 60) + 80), 400);
+
+  // bundle edges and add offsets for parallels
+  const bundled: GraphEdge[] = [];
+  const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
+  const temp = new Map<string, GraphEdge>();
+  graphEdges.forEach((e) => {
+    const k = key(e);
+    const existing = temp.get(k);
+    if (existing) {
+      existing.perMinute += e.perMinute;
+    } else {
+      temp.set(k, { ...e });
+    }
+  });
+  temp.forEach((v) => bundled.push(v));
+
+  const bySource: Record<string, GraphEdge[]> = {};
+  bundled.forEach((e) => {
+    bySource[e.from] ??= [];
+    bySource[e.from].push(e);
+  });
+  Object.values(bySource).forEach((list) => list.sort((a, b) => a.itemName.localeCompare(b.itemName)));
+
+  const maxRate = Math.max(...bundled.map((e) => e.perMinute), 1);
+  const rfNodes = graphNodes.map((n) => ({
+    id: n.id,
+    position: positions[n.id],
+    data: n,
+    type: 'cardNode',
+    draggable: false,
+    selectable: false,
+  }));
+
+  const rfEdges = bundled.map((e) => {
+    const siblings = bySource[e.from] ?? [];
+    const idx = siblings.findIndex((s) => s.to === e.to && s.itemId === e.itemId);
+    const offset = (idx - (siblings.length - 1) / 2) * 8;
+    const color = hashColor(e.itemId);
+    const widthScale = Math.max(2, (e.perMinute / maxRate) * 12);
+    return {
+      id: `${e.from}-${e.to}-${e.itemId}`,
+      source: e.from,
+      target: e.to,
+      type: 'flowEdge',
+      data: {
+        label: `${e.itemName} — ${formatEdgeRate(e.perMinute)} / min`,
+        hoverLabel: `${e.itemName}: ${formatDisplay(e.perMinute)} / min`,
+        color,
+        width: widthScale,
+        offset,
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color,
+      },
+      style: {
+        strokeWidth: widthScale,
+        stroke: color,
+      },
+      sourceHandle: `s-${offset}`,
+      targetHandle: `t-${offset}`,
+    };
   });
 
-  const bundledEdges = useMemo(() => {
-    const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
-    const map = new Map<string, GraphEdge>();
-    edges.forEach((e) => {
-      if (!positions[e.from] || !positions[e.to]) return;
-      const k = key(e);
-      const existing = map.get(k);
-      if (existing) {
-        existing.perMinute += e.perMinute;
-      } else {
-        map.set(k, { ...e });
-      }
-    });
-    return Array.from(map.values());
-  }, [edges, positions]);
+  const [nodes, , onNodesChange] = useNodesState(rfNodes);
+  const [edges, , onEdgesChange] = useEdgesState(rfEdges);
 
-  const maxEdgeRate = Math.max(...bundledEdges.map((e) => e.perMinute), 1);
-  const stageOrder: GraphNode['stage'][] = ['raw', 'smelting', 'assembly', 'final'];
+  const nodeTypes = useMemo(() => ({ cardNode: CardNode }), []);
+  const edgeTypes = useMemo(() => ({ flowEdge: FlowEdge }), []);
 
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-slate-100">Production graph</h2>
-          <p className="text-xs text-slate-400">Layered left → right (raw to target)</p>
-        </div>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <button
-            type="button"
-            className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700"
-            onClick={() => {
-              setScale(1);
-              setOffset({ x: 0, y: 0 });
-            }}
-          >
-            Fit to graph
-          </button>
-          <label className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-slate-200">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-indigo-500"
-              checked={collapse}
-              onChange={(e) => setCollapse(e.target.checked)}
-            />
-            Collapse intermediates
-          </label>
-          <div className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-slate-200">
-            <span>Focus item</span>
-            <input
-              className="w-40 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-slate-100 text-xs"
-              placeholder="Item id or name"
-              value={focusItem}
-              onChange={(e) => setFocusItem(e.target.value)}
-            />
-          </div>
+          <p className="text-xs text-slate-400">Curved flows with throughput-based widths</p>
         </div>
       </div>
-      <div
-        className="relative mt-4 overflow-auto"
-        style={{ height: 640 }}
-        onWheel={(e) => {
-          e.preventDefault();
-          const delta = e.deltaY > 0 ? -0.1 : 0.1;
-          setScale((s) => Math.max(0.4, Math.min(2, s + delta)));
-        }}
-        onMouseDown={(e) => {
-          setIsPanning(true);
-          setLastPos({ x: e.clientX, y: e.clientY });
-        }}
-        onMouseUp={() => {
-          setIsPanning(false);
-          setLastPos(null);
-        }}
-        onMouseMove={(e) => {
-          if (!isPanning || !lastPos) return;
-          const dx = e.clientX - lastPos.x;
-          const dy = e.clientY - lastPos.y;
-          setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
-          setLastPos({ x: e.clientX, y: e.clientY });
-        }}
-      >
-        <div
-          className="relative"
-          style={{
-            width: svgWidth,
-            height: svgHeight,
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-            transformOrigin: 'top left',
-          }}
+      <div className="mt-4 h-[640px] w-full">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          zoomOnScroll
+          zoomOnPinch
+          panOnScroll
+          panOnDrag
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          style={{ background: 'transparent' }}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          proOptions={{ hideAttribution: true }}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          minZoom={0.5}
+          maxZoom={1.8}
         >
-          {Object.entries(normalizedColumns).map(([colStr]) => {
-            const col = Number(colStr);
-            const stage = columnStages[col];
-            const color = stage === 'final' ? 'bg-indigo-900/20' : stage === 'raw' ? 'bg-slate-900/30' : 'bg-slate-900/15';
-            return (
-              <div
-                key={col}
-                className={classNames('absolute rounded-lg border border-slate-800/30', color)}
-                style={{
-                  left: col * (CARD_WIDTH + 100),
-                  top: 0,
-                  width: CARD_WIDTH + 100,
-                  height: svgHeight,
-                }}
-              >
-                <span className="absolute left-2 top-2 text-[10px] uppercase tracking-wide text-slate-500">{stage}</span>
-              </div>
-            );
-          })}
-
-          <svg width={svgWidth} height={svgHeight} className="absolute left-0 top-0">
-            <defs>
-              <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L10,5 L0,10 z" fill="#818cf8" />
-              </marker>
-            </defs>
-            {bundledEdges.map((edge) => {
-              const from = positions[edge.from];
-              const to = positions[edge.to];
-              if (!from || !to) return null;
-              const startX = from.x + CARD_WIDTH;
-              const startY = from.y + CARD_HEIGHT / 2;
-              const endX = to.x;
-              const endY = to.y + CARD_HEIGHT / 2;
-              const thickness = 1 + (edge.perMinute / maxEdgeRate) * 6;
-              const color = `rgba(129,140,248,${0.4 + Math.min(0.6, edge.perMinute / maxEdgeRate)})`;
-              const labelX = (startX + endX) / 2;
-              const labelY = (startY + endY) / 2 - 6;
-              return (
-                <g key={`${edge.from}-${edge.to}-${edge.itemId}`}>
-                  <line
-                    x1={startX}
-                    y1={startY}
-                    x2={endX}
-                    y2={endY}
-                    stroke={color}
-                    strokeWidth={thickness}
-                    markerEnd="url(#arrow)"
-                  />
-                  <text x={labelX} y={labelY} className="text-[11px] fill-indigo-100" textAnchor="middle">
-                    {`${edge.itemName} — ${formatEdgeRate(edge.perMinute)} / min`}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-          {filteredNodes.map((node) => {
-            const pos = positions[node.id];
-            if (!pos) return null;
-            const borderColor = node.isTarget
-              ? 'border-indigo-400 shadow-indigo-500/40'
-              : node.stage === 'raw'
-                ? 'border-slate-700'
-                : 'border-slate-800';
-            const muted = focusItem
-              ? !node.label.toLowerCase().includes(focusItem.toLowerCase()) &&
-                !node.machine.toLowerCase().includes(focusItem.toLowerCase())
-              : false;
-            return (
-              <div
-                key={node.id}
-                className={classNames(
-                  'absolute w-[240px] rounded-lg border bg-slate-900/90 p-3 shadow-lg shadow-slate-900/40 transition-opacity',
-                  borderColor,
-                  muted && 'opacity-40',
-                )}
-                style={{ left: pos.x, top: pos.y }}
-              >
-                <p className="text-sm font-semibold text-slate-50">{node.label}</p>
-                <hr className="my-2 border-slate-800" />
-                <p className="text-xs text-slate-300">Machine: {node.machine}</p>
-                <p className="text-xs text-slate-300">Machines: {formatDisplay(node.machinesNeeded)}</p>
-                <p className="text-xs text-slate-300">Output: {formatDisplay(node.outputPerMin)} / min</p>
-              </div>
-            );
-          })}
-        </div>
+          <Background />
+          <Controls showInteractive={false} />
+        </ReactFlow>
       </div>
     </div>
   );

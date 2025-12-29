@@ -17,7 +17,6 @@ import ReactFlow, {
   type Node,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { toPng } from 'html-to-image';
 import { dataBundle, extractTierInfo } from './data/data';
 import { buildProducerMap } from './logic/recipes';
 import { buildCalculation, RequirementNode } from './logic/calculator';
@@ -383,6 +382,7 @@ function ProductionGraph({
   const [snapEnabled, setSnapEnabled] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
   const elkRef = useRef<any>(null);
+  const toPngRef = useRef<((node: HTMLElement, options?: any) => Promise<string>) | null>(null);
   const rafRef = useRef<number>();
   const movedRef = useRef<Record<string, boolean>>({});
   const [exporting, setExporting] = useState(false);
@@ -407,6 +407,21 @@ function ProductionGraph({
         const ElkCtor = (mod as any).default || (mod as any).ELK || mod;
         elkRef.current = new ElkCtor();
         return elkRef.current;
+      } catch (e) {
+        continue;
+      }
+    }
+    return null;
+  }, []);
+
+  const loadToPng = useCallback(async () => {
+    if (toPngRef.current) return toPngRef.current;
+    const candidates = [() => import('html-to-image'), () => import('html-to-image/index')];
+    for (const loader of candidates) {
+      try {
+        const mod = await loader();
+        toPngRef.current = (mod as any).toPng;
+        return toPngRef.current;
       } catch (e) {
         continue;
       }
@@ -597,6 +612,8 @@ function ProductionGraph({
       await new Promise((resolve) => requestAnimationFrame(resolve));
 
       try {
+        const toPng = await loadToPng();
+        if (!toPng) throw new Error('html-to-image unavailable');
         const scale = 3;
         const dataUrl = await toPng(flowWrapperRef.current, {
           pixelRatio: scale,

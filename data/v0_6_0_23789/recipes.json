@@ -655,15 +655,14 @@
     "craftedIn": "assembler",
     "baseTimeSec": 90.0,
     "inputs": {
-      "xenoferrite_plates": 100.0,
-      "steel_beams": 25.0,
-      "advanced_machinery_parts": 25.0,
-      "concrete": 60.0,
-      "polymer_board": 60.0,
-      "electronic_components": 50.0
+      "firmarlite_sheet": 90.0,
+      "steel_beams": 15.0,
+      "advanced_machinery_parts": 15.0,
+      "concrete": 30.0,
+      "electronic_components": 15.0
     },
     "outputs": {
-      "construction_material": 320.0
+      "construction_material": 150.0
     },
     "craftersSeen": [
       "Assembler I",

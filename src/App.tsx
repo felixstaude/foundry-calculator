@@ -19,12 +19,11 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toPng } from 'html-to-image';
-import { dataBundle, extractTierInfo } from './data/data';
-import { buildProducerMap } from './logic/recipes';
+import { dataBundle as localDataBundle, extractTierInfo, type DataBundle } from './data/data';
+import { DEFAULT_BASE_URL, loadDataBundle, loadVersionIndex, type VersionEntry } from './data/remoteData';
+import { buildProducerMap, type ProducerMap } from './logic/recipes';
 import { buildCalculation, RequirementNode } from './logic/calculator';
 import type { RecipeSelection } from './logic/recipes';
-
-const producers = buildProducerMap(dataBundle.recipes);
 
 function classNames(...values: Array<string | false | undefined>) {
   return values.filter(Boolean).join(' ');
@@ -55,6 +54,28 @@ const customMachineOptions: Record<string, MachineOption[]> = {
 
 const findCustomMachineOption = (familyId: string, optionId?: string) =>
   customMachineOptions[familyId]?.find((opt) => opt.id === optionId);
+
+const VERSION_STORAGE_KEY = 'foundry:selectedVersion';
+
+function readStoredVersion() {
+  try {
+    if (typeof window === 'undefined') return '';
+    return window.localStorage.getItem(VERSION_STORAGE_KEY) ?? '';
+  } catch (err) {
+    return '';
+  }
+}
+
+function persistStoredVersion(version: string) {
+  try {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(VERSION_STORAGE_KEY, version);
+  } catch (err) {
+    // ignore storage errors
+  }
+}
+
+const LOCAL_VERSION_FALLBACK = localDataBundle.version.version ?? 'local';
 
 type GraphNode = {
   id: string;
@@ -94,12 +115,14 @@ function SearchableSelect({
   value,
   onChange,
   placeholder,
+  disabled = false,
 }: {
   label: string;
   options: Option[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const filtered = useMemo(
@@ -119,8 +142,9 @@ function SearchableSelect({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         type="search"
+        disabled={disabled}
       />
-      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+      <select className="input" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
         <option value="" disabled>
           Select an item
         </option>
@@ -162,24 +186,28 @@ function MachineSelector({
   machineChoices,
   onChange,
   customOptions,
+  data,
+  disabled = false,
 }: {
   machineChoices: Record<string, string>;
   onChange: (familyId: string, machineId?: string) => void;
   customOptions: Record<string, MachineOption[]>;
+  data: DataBundle;
+  disabled?: boolean;
 }) {
   const families = useMemo(() => {
     const craftedFamilies = new Set<string>();
-    Object.values(dataBundle.recipes).forEach((recipe) => {
+    Object.values(data.recipes).forEach((recipe) => {
       if (recipe.craftedIn) craftedFamilies.add(recipe.craftedIn);
     });
     return Array.from(craftedFamilies)
-      .map((id) => ({ id, label: dataBundle.machines[id]?.name ?? id }))
+      .map((id) => ({ id, label: data.machines[id]?.name ?? id }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, []);
+  }, [data]);
 
   const baseOptions: MachineOption[] = useMemo(
-    () => Object.values(dataBundle.machines).map((m) => ({ id: m.id, label: m.name })).sort((a, b) => a.label.localeCompare(b.label)),
-    [],
+    () => Object.values(data.machines).map((m) => ({ id: m.id, label: m.name })).sort((a, b) => a.label.localeCompare(b.label)),
+    [data],
   );
 
   if (families.length === 0) return null;
@@ -201,6 +229,7 @@ function MachineSelector({
                 className="input"
                 value={machineChoices[family.id] ?? ''}
                 onChange={(e) => onChange(family.id, e.target.value || undefined)}
+                disabled={disabled}
               >
                 <option value="">Default ({family.label})</option>
                 {combinedOptions.map((machine) => (
@@ -751,20 +780,33 @@ function ProductionGraph({
 }
 
 function App() {
-  const itemOptions: Option[] = useMemo(
-    () =>
-      Object.values(dataBundle.items)
-        .map((item) => ({ value: item.id, label: `${item.name} (${item.id})` }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    [],
-  );
-
+  const [selectedVersion, setSelectedVersion] = useState<string>(() => {
+    if (typeof window === 'undefined') return LOCAL_VERSION_FALLBACK;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('version') ?? params.get('ver') ?? readStoredVersion() ?? LOCAL_VERSION_FALLBACK;
+  });
+  const [availableVersions, setAvailableVersions] = useState<VersionEntry[]>([]);
+  const [versionWarnings, setVersionWarnings] = useState<string[]>([]);
+  const [bundleState, setBundleState] = useState<{
+    bundle: DataBundle;
+    version: string;
+    source: 'network' | 'cache' | 'fallback';
+  } | null>(null);
+  const [producers, setProducers] = useState<ProducerMap>({});
   const [selectedItemId, setSelectedItemId] = useState('');
   const [desiredRate, setDesiredRate] = useState(60);
   const [roundUpMachines, setRoundUpMachines] = useState(false);
   const [tierPreferences, setTierPreferences] = useState<Record<string, number>>({});
   const [recipeOverrides, setRecipeOverrides] = useState<Record<string, string>>({});
   const [machineChoices, setMachineChoices] = useState<Record<string, string>>({});
+  const [loadingIndex, setLoadingIndex] = useState(true);
+  const [loadingBundle, setLoadingBundle] = useState(false);
+  const [dataWarnings, setDataWarnings] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [fallbackAcknowledged, setFallbackAcknowledged] = useState(false);
+
+  const bundle = bundleState?.bundle;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -774,7 +816,9 @@ function App() {
     const tiersParam = params.get('tiers');
     const overridesParam = params.get('overrides');
     const machinesParam = params.get('machines');
+    const versionParam = params.get('version') ?? params.get('ver');
 
+    if (versionParam) setSelectedVersion(versionParam);
     if (item) setSelectedItemId(item);
     if (rateParam) setDesiredRate(Number.parseFloat(rateParam));
     if (roundParam) setRoundUpMachines(roundParam === '1');
@@ -807,8 +851,101 @@ function App() {
     }
   }, []);
 
+  const localVersionEntry = useMemo(
+    () => ({
+      version: LOCAL_VERSION_FALLBACK,
+      title: 'Bundled data',
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchIndex = async () => {
+      setLoadingIndex(true);
+      try {
+        const { latest, versions, warnings } = await loadVersionIndex(DEFAULT_BASE_URL, localVersionEntry);
+        if (cancelled) return;
+        setAvailableVersions(versions);
+        setVersionWarnings(warnings);
+        setSelectedVersion((prev) => {
+          if (!prev || prev === 'latest') return latest.version;
+          return prev;
+        });
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : String(err);
+        setAvailableVersions([localVersionEntry]);
+        setVersionWarnings([`Failed to load remote version index: ${message}. Using bundled version metadata.`]);
+        setSelectedVersion((prev) => prev || localVersionEntry.version);
+      } finally {
+        if (!cancelled) setLoadingIndex(false);
+      }
+    };
+
+    fetchIndex();
+    return () => {
+      cancelled = true;
+    };
+  }, [localVersionEntry]);
+
+  useEffect(() => {
+    if (!selectedVersion) return;
+    let cancelled = false;
+    setLoadingBundle(true);
+    setDataWarnings([]);
+    setLoadError(null);
+    setFallbackAcknowledged(false);
+    const fetchData = async () => {
+      try {
+        const result = await loadDataBundle(selectedVersion, DEFAULT_BASE_URL);
+        if (cancelled) return;
+        setBundleState({ bundle: result.bundle, version: selectedVersion, source: result.source });
+        setProducers(buildProducerMap(result.bundle.recipes));
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : String(err);
+        setBundleState({ bundle: localDataBundle, version: localVersionEntry.version, source: 'fallback' });
+        setProducers(buildProducerMap(localDataBundle.recipes));
+        setLoadError(message);
+        setDataWarnings([`Using bundled data because version "${selectedVersion}" failed to load (${message}).`]);
+      } finally {
+        if (!cancelled) setLoadingBundle(false);
+      }
+    };
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, [localVersionEntry.version, reloadToken, selectedVersion]);
+
+  useEffect(() => {
+    if (!bundle) return;
+    if (selectedItemId && !bundle.items[selectedItemId]) {
+      setSelectedItemId('');
+    }
+  }, [bundle, selectedItemId]);
+
+  const versionOptionsForSelect = useMemo(() => {
+    const map = new Map<string, VersionEntry>();
+    availableVersions.forEach((entry) => map.set(entry.version, entry));
+    if (selectedVersion && !map.has(selectedVersion)) {
+      map.set(selectedVersion, { version: selectedVersion, title: 'Custom selection' });
+    }
+    return Array.from(map.values());
+  }, [availableVersions, selectedVersion]);
+
+  const itemOptions: Option[] = useMemo(() => {
+    if (!bundle) return [];
+    return Object.values(bundle.items)
+      .map((item) => ({ value: item.id, label: `${item.name} (${item.id})` }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [bundle]);
+
   useEffect(() => {
     const params = new URLSearchParams();
+    if (selectedVersion) params.set('version', selectedVersion);
     if (selectedItemId) params.set('item', selectedItemId);
     if (desiredRate) params.set('rate', desiredRate.toString());
     if (roundUpMachines) params.set('round', '1');
@@ -828,9 +965,10 @@ function App() {
       .join(';');
     if (machineEntries) params.set('machines', machineEntries);
 
+    persistStoredVersion(selectedVersion);
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
-  }, [desiredRate, machineChoices, recipeOverrides, roundUpMachines, selectedItemId, tierPreferences]);
+  }, [desiredRate, machineChoices, recipeOverrides, roundUpMachines, selectedItemId, selectedVersion, tierPreferences]);
 
   const selection: RecipeSelection = useMemo(
     () => ({ overrides: recipeOverrides, tierPreferences }),
@@ -855,16 +993,16 @@ function App() {
     if (tiered.length === 0) return undefined;
     const baseName = extractTierInfo(tiered[0]).baseName;
     return { baseName, recipes: tiered };
-  }, [selectedItemId]);
+  }, [producers, selectedItemId]);
 
   const calculation = useMemo(() => {
-    if (!selectedItemId || Number.isNaN(desiredRate) || desiredRate <= 0) return { root: undefined, totals: {} };
-    return buildCalculation(selectedItemId, desiredRate, dataBundle, producers, {
+    if (!bundle || !selectedItemId || Number.isNaN(desiredRate) || desiredRate <= 0) return { root: undefined, totals: {} };
+    return buildCalculation(selectedItemId, desiredRate, bundle, producers, {
       roundUpMachines,
       selection,
       machineSpeedMultipliers,
     });
-  }, [desiredRate, machineSpeedMultipliers, roundUpMachines, selectedItemId, selection]);
+  }, [bundle, desiredRate, machineSpeedMultipliers, producers, roundUpMachines, selectedItemId, selection]);
 
   const variantOptions: Option[] | undefined = useMemo(() => {
     if (!activeVariants) return undefined;
@@ -893,10 +1031,10 @@ function App() {
           itemId,
           perMin,
           perSec: perMin / 60,
-          name: dataBundle.items[itemId]?.name ?? itemId,
+          name: bundle?.items[itemId]?.name ?? itemId,
         }))
         .sort((a, b) => a.name.localeCompare(b.name)),
-    [calculation.totals],
+    [bundle, calculation.totals],
   );
 
   const collectWarnings = (node?: RequirementNode): string[] => {
@@ -907,21 +1045,33 @@ function App() {
 
   const machineLabel = (craftedIn?: string | null) => {
     if (!craftedIn) return 'Unknown machine';
+    if (!bundle) return 'Unknown machine';
     const choiceId = machineChoices[craftedIn];
     const custom = findCustomMachineOption(craftedIn, choiceId);
     if (custom) return custom.label;
-    if (choiceId) return dataBundle.machines[choiceId]?.name ?? choiceId;
-    return dataBundle.machines[craftedIn]?.name ?? craftedIn;
+    if (choiceId) return bundle.machines[choiceId]?.name ?? choiceId;
+    return bundle.machines[craftedIn]?.name ?? craftedIn;
   };
 
-  const version = dataBundle.version.version ?? 'unknown';
+  const version = bundle?.version.version ?? 'unknown';
+  const uiBlocked = loadingBundle || !bundle;
+  const dataSourceLabel =
+    bundleState?.source === 'cache'
+      ? 'Cached dataset'
+      : bundleState?.source === 'network'
+        ? 'Remote dataset'
+        : bundleState?.source === 'fallback'
+          ? 'Bundled fallback'
+          : 'Not loaded';
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8" aria-busy={uiBlocked}>
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-slate-50">Foundry Calculator</h1>
-          <p className="text-slate-400">Data version {version} · React + Vite + Tailwind (static deploy ready)</p>
+          <p className="text-slate-400">
+            Data version {version} · {dataSourceLabel} · React + Vite + Tailwind (static deploy ready)
+          </p>
         </div>
         <a
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
@@ -933,185 +1083,268 @@ function App() {
         </a>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card space-y-3 p-4">
-          <SearchableSelect
-            label="Target item"
-            options={itemOptions}
-            value={selectedItemId}
-            onChange={setSelectedItemId}
-            placeholder="Search by name or id"
-          />
-          <div className="space-y-2">
-            <label className="label" htmlFor="desiredRate">
-              Desired output rate (items/min)
+      <div className="card space-y-3 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-4">
+            <label className="label" htmlFor="versionSelect">
+              Data version
             </label>
-            <input
-              id="desiredRate"
+            <select
+              id="versionSelect"
               className="input"
-              type="number"
-              min={0}
-              step={1}
-              value={desiredRate}
-              onChange={(e) => setDesiredRate(Number.parseFloat(e.target.value))}
-            />
+              value={selectedVersion}
+              onChange={(e) => setSelectedVersion(e.target.value)}
+              disabled={loadingIndex || loadingBundle}
+            >
+              {versionOptionsForSelect.map((entry) => (
+                <option key={entry.version} value={entry.version}>
+                  {entry.title ? `${entry.version} – ${entry.title}` : entry.version}
+                </option>
+              ))}
+            </select>
           </div>
-          {variantOptions && activeVariants ? (
-            <div className="space-y-2">
-              <label className="label">Variant / tier</label>
-              <select
-                className="input"
-                value={
-                  activeVariants.recipes.find((r) => extractTierInfo(r).tier === selectedTier)?.id ?? ''
-                }
-                onChange={(e) => setVariantChoice(e.target.value)}
-              >
-                {variantOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-slate-400">Defaulting to Tier 1 when available.</p>
-            </div>
-          ) : null}
-          <div className="flex items-center gap-3">
-            <input
-              id="roundUp"
-              type="checkbox"
-              className="h-4 w-4 accent-indigo-500"
-              checked={roundUpMachines}
-              onChange={(e) => setRoundUpMachines(e.target.checked)}
-            />
-            <label className="label" htmlFor="roundUp">
-              Round machines up
-            </label>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+            <button
+              type="button"
+              className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
+              onClick={() => setReloadToken((v) => v + 1)}
+              disabled={loadingBundle}
+            >
+              Retry load
+            </button>
+            {loadingBundle ? <span className="text-amber-200">Loading dataset…</span> : null}
           </div>
         </div>
-        <div className="space-y-3">
-          <MachineSelector
-            machineChoices={machineChoices}
-            customOptions={customMachineOptions}
-            onChange={(familyId, machineId) =>
-              setMachineChoices((prev) => {
-                const next = { ...prev };
-                if (!machineId) delete next[familyId];
-                else next[familyId] = machineId;
-                return next;
-              })
-            }
-          />
-          <details className="card space-y-3 p-4">
-            <summary className="cursor-pointer text-sm font-semibold text-slate-100">Advanced recipe overrides</summary>
-            <p className="text-sm text-slate-300">
-              Choose which recipe to use for a given item when multiple producers exist. Overrides are saved in the
-              shareable URL.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Object.entries(producers)
-                .filter(([, recipes]) => recipes.length > 1)
-                .map(([itemId, recipes]) => ({
-                  itemId,
-                  name: dataBundle.items[itemId]?.name ?? itemId,
-                  recipes,
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((entry) => (
-                  <div key={entry.itemId} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
-                    <p className="text-sm font-semibold text-slate-100">{entry.name}</p>
-                    <select
-                      className="input"
-                      value={selection.overrides[entry.itemId] ?? ''}
-                      onChange={(e) =>
-                        setRecipeOverrides((prev) => {
-                          const next = { ...prev };
-                          const value = e.target.value;
-                          if (!value) delete next[entry.itemId];
-                          else next[entry.itemId] = value;
-                          return next;
-                        })
-                      }
-                    >
-                      <option value="">Default (tier preference)</option>
-                      {entry.recipes.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
+        {versionWarnings.length ? <WarningList warnings={versionWarnings} /> : null}
+        {(dataWarnings.length > 0 || loadError) && !fallbackAcknowledged ? (
+          <div className="rounded-md border border-amber-500/60 bg-amber-950/50 p-3 text-amber-100">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Fallback to bundled data</p>
+                <p className="text-xs">{dataWarnings[0] ?? loadError ?? 'Remote load failed; using bundled data.'}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="rounded-md bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
+                  onClick={() => setReloadToken((v) => v + 1)}
+                  disabled={loadingBundle}
+                >
+                  Retry
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-100 hover:bg-slate-600"
+                  onClick={() => setFallbackAcknowledged(true)}
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
-          </details>
-        </div>
+          </div>
+        ) : null}
       </div>
 
-      {calculation.root ? (
-        <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard title="Target" value={`${formatDisplay(desiredRate)} / min`} sub={calculation.root.itemName} />
-            <SummaryCard
-              title="Machines needed"
-              value={formatDisplay(calculation.root.machinesNeeded)}
-              sub={machineLabel(calculation.root.craftedIn)}
-            />
-            <SummaryCard
-              title="Base time"
-              value={
-                calculation.root.baseTimeSec !== null && calculation.root.baseTimeSec !== undefined
-                  ? `${formatDisplay(calculation.root.baseTimeSec)}s`
-                  : 'Unknown'
-              }
-              sub={calculation.root.recipe?.name ?? 'No recipe'}
-            />
-            <SummaryCard
-              title="Actual output"
-              value={
-                calculation.root.actualOutputPerMin !== undefined
-                  ? `${formatDisplay(calculation.root.actualOutputPerMin)} / min`
-                  : `${formatDisplay(desiredRate)} / min`
-              }
-              sub={roundUpMachines ? 'Rounded machines may exceed target' : 'Exact machines'}
-            />
+      <div className="relative">
+        {uiBlocked ? (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-slate-950/70 backdrop-blur">
+            <div className="space-y-1 text-center">
+              <p className="text-sm font-semibold text-slate-100">Loading data…</p>
+              <p className="text-xs text-slate-300">Fetching {selectedVersion || 'latest'} dataset</p>
+            </div>
           </div>
-
-          <div className="card p-4">
-            <h2 className="text-lg font-semibold text-slate-100">Inputs per minute (aggregated)</h2>
-            {totalsEntries.length === 0 ? (
-              <p className="text-sm text-slate-400">No inputs calculated yet.</p>
-            ) : (
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full table-auto text-sm">
-                  <thead>
-                    <tr className="text-left text-slate-300">
-                      <th className="p-2">Item</th>
-                      <th className="p-2">Per minute</th>
-                      <th className="p-2">Per second</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {totalsEntries.map((row) => (
-                      <tr key={row.itemId} className="border-t border-slate-800">
-                        <td className="p-2">{row.name}</td>
-                        <td className="p-2">{formatDisplay(row.perMin)}</td>
-                        <td className="p-2">{formatDisplay(row.perSec)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        ) : null}
+        <div className={classNames('space-y-6', uiBlocked ? 'pointer-events-none opacity-60' : '')}>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="card space-y-3 p-4">
+              <SearchableSelect
+                label="Target item"
+                options={itemOptions}
+                value={selectedItemId}
+                onChange={setSelectedItemId}
+                placeholder="Search by name or id"
+                disabled={uiBlocked || !bundle}
+              />
+              <div className="space-y-2">
+                <label className="label" htmlFor="desiredRate">
+                  Desired output rate (items/min)
+                </label>
+                <input
+                  id="desiredRate"
+                  className="input"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={desiredRate}
+                  onChange={(e) => setDesiredRate(Number.parseFloat(e.target.value))}
+                  disabled={uiBlocked}
+                />
               </div>
-            )}
+              {variantOptions && activeVariants ? (
+                <div className="space-y-2">
+                  <label className="label">Variant / tier</label>
+                  <select
+                    className="input"
+                    value={activeVariants.recipes.find((r) => extractTierInfo(r).tier === selectedTier)?.id ?? ''}
+                    onChange={(e) => setVariantChoice(e.target.value)}
+                    disabled={uiBlocked}
+                  >
+                    {variantOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-400">Defaulting to Tier 1 when available.</p>
+                </div>
+              ) : null}
+              <div className="flex items-center gap-3">
+                <input
+                  id="roundUp"
+                  type="checkbox"
+                  className="h-4 w-4 accent-indigo-500"
+                  checked={roundUpMachines}
+                  onChange={(e) => setRoundUpMachines(e.target.checked)}
+                  disabled={uiBlocked}
+                />
+                <label className="label" htmlFor="roundUp">
+                  Round machines up
+                </label>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {bundle ? (
+                <MachineSelector
+                  machineChoices={machineChoices}
+                  customOptions={customMachineOptions}
+                  onChange={(familyId, machineId) =>
+                    setMachineChoices((prev) => {
+                      const next = { ...prev };
+                      if (!machineId) delete next[familyId];
+                      else next[familyId] = machineId;
+                      return next;
+                    })
+                  }
+                  data={bundle}
+                  disabled={uiBlocked}
+                />
+              ) : (
+                <div className="card p-4 text-sm text-slate-300">Data must load before machine preferences are available.</div>
+              )}
+              <details className="card space-y-3 p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-100">Advanced recipe overrides</summary>
+                <p className="text-sm text-slate-300">
+                  Choose which recipe to use for a given item when multiple producers exist. Overrides are saved in the
+                  shareable URL.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {Object.entries(producers)
+                    .filter(([, recipes]) => recipes.length > 1)
+                    .map(([itemId, recipes]) => ({
+                      itemId,
+                      name: bundle?.items[itemId]?.name ?? itemId,
+                      recipes,
+                    }))
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((entry) => (
+                      <div key={entry.itemId} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
+                        <p className="text-sm font-semibold text-slate-100">{entry.name}</p>
+                        <select
+                          className="input"
+                          value={selection.overrides[entry.itemId] ?? ''}
+                          onChange={(e) =>
+                            setRecipeOverrides((prev) => {
+                              const next = { ...prev };
+                              const value = e.target.value;
+                              if (!value) delete next[entry.itemId];
+                              else next[entry.itemId] = value;
+                              return next;
+                            })
+                          }
+                          disabled={uiBlocked}
+                        >
+                          <option value="">Default (tier preference)</option>
+                          {entry.recipes.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                </div>
+              </details>
+            </div>
           </div>
 
-          <ReactFlowProvider>
-            <ProductionGraph root={calculation.root} machineLabel={machineLabel} />
-          </ReactFlowProvider>
+          {calculation.root ? (
+            <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <SummaryCard title="Target" value={`${formatDisplay(desiredRate)} / min`} sub={calculation.root.itemName} />
+                <SummaryCard
+                  title="Machines needed"
+                  value={formatDisplay(calculation.root.machinesNeeded)}
+                  sub={machineLabel(calculation.root.craftedIn)}
+                />
+                <SummaryCard
+                  title="Base time"
+                  value={
+                    calculation.root.baseTimeSec !== null && calculation.root.baseTimeSec !== undefined
+                      ? `${formatDisplay(calculation.root.baseTimeSec)}s`
+                      : 'Unknown'
+                  }
+                  sub={calculation.root.recipe?.name ?? 'No recipe'}
+                />
+                <SummaryCard
+                  title="Actual output"
+                  value={
+                    calculation.root.actualOutputPerMin !== undefined
+                      ? `${formatDisplay(calculation.root.actualOutputPerMin)} / min`
+                      : `${formatDisplay(desiredRate)} / min`
+                  }
+                  sub={roundUpMachines ? 'Rounded machines may exceed target' : 'Exact machines'}
+                />
+              </div>
 
-          <WarningList warnings={collectWarnings(calculation.root)} />
+              <div className="card p-4">
+                <h2 className="text-lg font-semibold text-slate-100">Inputs per minute (aggregated)</h2>
+                {totalsEntries.length === 0 ? (
+                  <p className="text-sm text-slate-400">No inputs calculated yet.</p>
+                ) : (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full table-auto text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-300">
+                          <th className="p-2">Item</th>
+                          <th className="p-2">Per minute</th>
+                          <th className="p-2">Per second</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {totalsEntries.map((row) => (
+                          <tr key={row.itemId} className="border-t border-slate-800">
+                            <td className="p-2">{row.name}</td>
+                            <td className="p-2">{formatDisplay(row.perMin)}</td>
+                            <td className="p-2">{formatDisplay(row.perSec)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <ReactFlowProvider>
+                <ProductionGraph root={calculation.root} machineLabel={machineLabel} />
+              </ReactFlowProvider>
+
+              <WarningList warnings={collectWarnings(calculation.root)} />
+            </div>
+          ) : (
+            <div className="text-sm text-slate-300">Select an item and set a target rate to see calculations.</div>
+          )}
         </div>
-      ) : (
-        <div className="text-sm text-slate-300">Select an item and set a target rate to see calculations.</div>
-      )}
+      </div>
     </div>
   );
 }

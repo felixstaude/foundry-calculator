@@ -3,49 +3,56 @@ import type { DataBundle, Item, Machine, Recipe, VersionInfo } from './data';
 
 const DEFAULT_BASE_URL = 'https://felixstaude.github.io/foundry-recipe-data';
 
-const itemSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-  })
-  .passthrough();
-
-const machineSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-  })
-  .passthrough();
-
-const recipeIoSchema = z.record(z.number());
-
-const recipeSchema = z
-  .object({
-    id: z.string(),
-    wikiTitle: z.string(),
-    name: z.string(),
-    craftedIn: z.string().nullable().optional(),
-    baseTimeSec: z.number().nullable().optional(),
-    inputs: recipeIoSchema.optional(),
-    outputs: recipeIoSchema.optional(),
-  })
-  .passthrough();
-
-const versionSchema = z
-  .object({
-    version: z.string().optional(),
-  })
-  .passthrough();
-
-const versionEntrySchema = z.object({
+const manifestSchema = z.object({
   version: z.string(),
   title: z.string().optional(),
-  updatedAt: z.string().optional(),
+  description: z.string().optional(),
+  publishedAt: z.string().optional(),
+  files: z.array(z.string()),
 });
 
-const versionListSchema = z.array(versionEntrySchema);
+const indexSchema = z.object({
+  latest: z.string(),
+  versions: z.array(
+    z.object({
+      version: z.string(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      publishedAt: z.string().optional(),
+    }),
+  ),
+});
 
-export type VersionEntry = z.infer<typeof versionEntrySchema>;
+const machineEntrySchema = z.object({
+  name: z.string(),
+  craftingTags: z.array(z.string()).optional(),
+  craftingSpeedMultiplier: z.number().optional(),
+});
+
+const machinesSchema = z.object({
+  machines: z.record(machineEntrySchema),
+});
+
+const recipeIoSchema = z.object({
+  identifier: z.string(),
+  amount: z.number(),
+});
+
+const recipeSchema = z.object({
+  identifier: z.string(),
+  name: z.string().optional(),
+  timeMs: z.number().optional(),
+  inputs: z.array(recipeIoSchema).optional(),
+  outputs: z.array(recipeIoSchema).optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+const recipesSchema = z.object({
+  count: z.number().optional(),
+  recipes: z.array(recipeSchema),
+});
+
+export type VersionEntry = z.infer<typeof indexSchema>['versions'][number];
 
 export type VersionIndex = {
   latest: VersionEntry;
@@ -137,50 +144,70 @@ async function fetchJson<T>(url: string, schema: z.ZodSchema<T>): Promise<FetchR
   return { data: parsed.data, etag: response.headers.get('etag') ?? undefined };
 }
 
-async function tryFetchVersionList(baseUrl: string): Promise<VersionEntry[] | undefined> {
-  try {
-    const { data } = await fetchJson(`${baseUrl}/versions.json`, versionListSchema);
-    return data;
-  } catch {
-    return undefined;
-  }
-}
-
-async function tryFetchLatest(baseUrl: string): Promise<VersionEntry | undefined> {
-  try {
-    const { data } = await fetchJson(`${baseUrl}/latest.json`, versionEntrySchema);
-    return data;
-  } catch {
-    return undefined;
-  }
-}
-
 export async function loadVersionIndex(baseUrl = DEFAULT_BASE_URL, fallback?: VersionEntry): Promise<VersionIndex> {
   const cleanBase = baseUrl.replace(/\/$/, '');
   const warnings: string[] = [];
-  const [latest, list] = await Promise.all([tryFetchLatest(cleanBase), tryFetchVersionList(cleanBase)]);
-
-  if (!latest && !list?.length) {
-    if (fallback) {
-      warnings.push('Remote version index unavailable; using bundled fallback version.');
-      return { latest: fallback, versions: [fallback], warnings };
+  try {
+    const { data } = await fetchJson(`${cleanBase}/index.json`, indexSchema);
+    const latestEntry = data.versions.find((v) => v.version === data.latest) ?? data.versions[0];
+    return { latest: latestEntry, versions: data.versions, warnings };
+  } catch (err) {
+    if (!fallback) {
+      throw new Error(err instanceof Error ? err.message : String(err));
     }
-    throw new Error('Unable to load version index from remote and no fallback provided.');
+    warnings.push('Remote version index unavailable; using bundled fallback version.');
+    return { latest: fallback, versions: [fallback], warnings };
   }
-
-  const resolvedLatest = latest ?? list?.[0];
-  const versions = list ?? (resolvedLatest ? [resolvedLatest] : []);
-  if (!latest) warnings.push('Latest version metadata unavailable; using first entry from versions list.');
-  if (!list?.length) warnings.push('Versions list unavailable; only latest metadata is available.');
-
-  return { latest: resolvedLatest!, versions, warnings };
 }
 
-function buildCandidatePaths(version: string) {
-  const variants = new Set<string>();
-  variants.add(version);
-  variants.add(version.replace(/\./g, '_'));
-  return Array.from(variants);
+function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record<string, string>): Recipe {
+  const inputs: Record<string, number> = {};
+  const outputs: Record<string, number> = {};
+  raw.inputs?.forEach((entry) => {
+    inputs[entry.identifier] = entry.amount;
+  });
+  raw.outputs?.forEach((entry) => {
+    outputs[entry.identifier] = entry.amount;
+  });
+
+  const tagId = raw.tags?.[0];
+  return {
+    id: raw.identifier,
+    wikiTitle: raw.name ?? raw.identifier,
+    name: raw.name ?? raw.identifier,
+    craftedIn: tagId ? tagToMachine[tagId] ?? tagId : undefined,
+    baseTimeSec: raw.timeMs !== undefined ? raw.timeMs / 1000 : undefined,
+    inputs,
+    outputs,
+  };
+}
+
+function deriveItems(recipes: Recipe[]): Record<string, Item> {
+  const map: Record<string, Item> = {};
+  recipes.forEach((recipe) => {
+    Object.keys(recipe.inputs ?? {}).forEach((id) => {
+      map[id] ??= { id, name: id };
+    });
+    Object.keys(recipe.outputs ?? {}).forEach((id) => {
+      map[id] ??= { id, name: id };
+    });
+  });
+  return map;
+}
+
+function normalizeMachines(raw: z.infer<typeof machinesSchema>): {
+  machines: Record<string, Machine>;
+  tagToMachine: Record<string, string>;
+} {
+  const machines: Record<string, Machine> = {};
+  const tagToMachine: Record<string, string> = {};
+  Object.entries(raw.machines).forEach(([key, value]) => {
+    machines[key] = { id: key, name: value.name };
+    value.craftingTags?.forEach((tag) => {
+      tagToMachine[tag] ??= key;
+    });
+  });
+  return { machines, tagToMachine };
 }
 
 type BundleSource = 'network' | 'cache';
@@ -198,30 +225,41 @@ export async function loadDataBundle(version: string, baseUrl = DEFAULT_BASE_URL
   }
 
   const cleanBase = baseUrl.replace(/\/$/, '');
-  const errors: string[] = [];
-  for (const candidate of buildCandidatePaths(version)) {
-    try {
-      const [itemsRes, machinesRes, recipesRes, versionRes] = await Promise.all([
-        fetchJson<Record<string, Item>>(`${cleanBase}/${candidate}/items.json`, z.record(itemSchema)),
-        fetchJson<Record<string, Machine>>(`${cleanBase}/${candidate}/machines.json`, z.record(machineSchema)),
-        fetchJson<Record<string, Recipe>>(`${cleanBase}/${candidate}/recipes.json`, z.record(recipeSchema)),
-        fetchJson<VersionInfo>(`${cleanBase}/${candidate}/version.json`, versionSchema),
-      ]);
-      const etag = [itemsRes.etag, machinesRes.etag, recipesRes.etag, versionRes.etag].filter(Boolean).join('|') || undefined;
-      const bundle: DataBundle = {
-        items: itemsRes.data,
-        machines: machinesRes.data,
-        recipes: recipesRes.data,
-        version: versionRes.data,
-      };
-      saveBundleToCache(version, bundle, etag);
-      return { bundle, etag, source: 'network' };
-    } catch (err) {
-      errors.push(err instanceof Error ? err.message : String(err));
-    }
+  const manifestUrl = `${cleanBase}/${version}/manifest.json`;
+  const manifestRes = await fetchJson(manifestUrl, manifestSchema);
+  const manifest = manifestRes.data;
+
+  if (!manifest.files.includes('recipes_clean.json') || !manifest.files.includes('machines.json')) {
+    throw new Error(`Manifest for ${version} is missing required files.`);
   }
 
-  throw new Error(`Failed to load version "${version}": ${errors.join(' | ')}`);
+  const [recipesRes, machinesRes] = await Promise.all([
+    fetchJson(`${cleanBase}/${version}/recipes_clean.json`, recipesSchema),
+    fetchJson(`${cleanBase}/${version}/machines.json`, machinesSchema),
+  ]);
+
+  const { machines, tagToMachine } = normalizeMachines(machinesRes.data);
+  const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine));
+  const items = deriveItems(normalizedRecipes);
+
+  const bundle: DataBundle = {
+    items,
+    machines,
+    recipes: normalizedRecipes.reduce<Record<string, Recipe>>((acc, r) => {
+      acc[r.id] = r;
+      return acc;
+    }, {}),
+    version: {
+      version: manifest.version,
+      title: manifest.title,
+      description: manifest.description,
+      publishedAt: manifest.publishedAt,
+    } as VersionInfo,
+  };
+
+  const etag = [manifestRes.etag, recipesRes.etag, machinesRes.etag].filter(Boolean).join('|') || undefined;
+  saveBundleToCache(version, bundle, etag);
+  return { bundle, etag, source: 'network' };
 }
 
 export { DEFAULT_BASE_URL };

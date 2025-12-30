@@ -210,7 +210,9 @@ function deriveItems(recipes: Recipe[]): Record<string, Item> {
     });
     outputs.forEach((id) => {
       const preferredName =
-        (id === recipe.id || outputs.length === 1) && recipeName ? recipeName : map[id]?.name ?? fallbackNameFromId(id) || id;
+        (id === recipe.id || outputs.length === 1) && recipeName
+          ? recipeName
+          : map[id]?.name ?? fallbackNameFromId(id) ?? id;
       map[id] = { id, name: preferredName };
     });
   });

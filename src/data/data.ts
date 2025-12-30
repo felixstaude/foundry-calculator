@@ -11,6 +11,8 @@ export type Item = {
 export type Machine = {
   id: string;
   name: string;
+  craftingTags?: string[];
+  speedMultiplier?: number;
 };
 
 export type RecipeIO = Record<string, number>;
@@ -30,11 +32,18 @@ export type VersionInfo = {
   [key: string]: unknown;
 };
 
+export type TagInfo = {
+  id: string;
+  name: string;
+};
+
 export type DataBundle = {
   items: Record<string, Item>;
   machines: Record<string, Machine>;
   recipes: Record<string, Recipe>;
   version: VersionInfo;
+  tags?: Record<string, TagInfo>;
+  machineFamilies?: Record<string, string[]>;
 };
 
 export const dataBundle: DataBundle = {

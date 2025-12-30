@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { DataBundle, Item, Machine, Recipe, VersionInfo } from './data';
+import type { DataBundle, Item, Machine, Recipe, TagInfo, VersionInfo } from './data';
 
 const DEFAULT_BASE_URL = 'https://felixstaude.github.io/foundry-recipe-data';
 
@@ -50,6 +50,16 @@ const recipeSchema = z.object({
 const recipesSchema = z.object({
   count: z.number().optional(),
   recipes: z.array(recipeSchema),
+});
+
+const tagSchema = z.object({
+  identifier: z.string(),
+  name: z.string().optional(),
+});
+
+const tagsSchema = z.object({
+  count: z.number().optional(),
+  tags: z.array(tagSchema),
 });
 
 export type VersionEntry = z.infer<typeof indexSchema>['versions'][number];
@@ -175,39 +185,80 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
     id: raw.identifier,
     wikiTitle: raw.name ?? raw.identifier,
     name: raw.name ?? raw.identifier,
-    craftedIn: tagId ? tagToMachine[tagId] ?? tagId : undefined,
+    craftedIn: tagId ?? tagToMachine[tagId] ?? undefined,
     baseTimeSec: raw.timeMs !== undefined ? raw.timeMs / 1000 : undefined,
     inputs,
     outputs,
   };
 }
 
+function fallbackNameFromId(id: string) {
+  return id
+    .replace(/^_+/, '')
+    .replace(/[_@]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function deriveItems(recipes: Recipe[]): Record<string, Item> {
   const map: Record<string, Item> = {};
   recipes.forEach((recipe) => {
+    const recipeName = recipe.name ?? recipe.wikiTitle ?? recipe.id;
+    const outputs = Object.keys(recipe.outputs ?? {});
     Object.keys(recipe.inputs ?? {}).forEach((id) => {
-      map[id] ??= { id, name: id };
+      map[id] ??= { id, name: fallbackNameFromId(id) || id };
     });
-    Object.keys(recipe.outputs ?? {}).forEach((id) => {
-      map[id] ??= { id, name: id };
+    outputs.forEach((id) => {
+      const preferredName =
+        (id === recipe.id || outputs.length === 1) && recipeName
+          ? recipeName
+          : map[id]?.name ?? fallbackNameFromId(id) ?? id;
+      map[id] = { id, name: preferredName };
     });
   });
   return map;
 }
 
-function normalizeMachines(raw: z.infer<typeof machinesSchema>): {
+function normalizeMachines(
+  raw: z.infer<typeof machinesSchema>,
+  rawTags?: z.infer<typeof tagsSchema>,
+): {
   machines: Record<string, Machine>;
   tagToMachine: Record<string, string>;
+  machineFamilies: Record<string, string[]>;
+  tags: Record<string, TagInfo>;
 } {
   const machines: Record<string, Machine> = {};
   const tagToMachine: Record<string, string> = {};
+  const machineFamilies: Record<string, string[]> = {};
+  const tags: Record<string, TagInfo> = {};
+
+  rawTags?.tags?.forEach((tag) => {
+    tags[tag.identifier] = { id: tag.identifier, name: tag.name ?? tag.identifier };
+  });
+
   Object.entries(raw.machines).forEach(([key, value]) => {
-    machines[key] = { id: key, name: value.name };
+    machines[key] = {
+      id: key,
+      name: value.name,
+      craftingTags: value.craftingTags,
+      speedMultiplier: value.craftingSpeedMultiplier,
+    };
     value.craftingTags?.forEach((tag) => {
       tagToMachine[tag] ??= key;
+      machineFamilies[tag] ??= [];
+      machineFamilies[tag].push(key);
     });
   });
-  return { machines, tagToMachine };
+
+  Object.entries(machineFamilies).forEach(([tagId, machineIds]) => {
+    if (!machines[tagId]) {
+      machines[tagId] = { id: tagId, name: tags[tagId]?.name ?? tagId, craftingTags: [tagId] };
+    }
+    machineIds.sort((a, b) => (machines[a]?.name ?? a).localeCompare(machines[b]?.name ?? b));
+  });
+
+  return { machines, tagToMachine, machineFamilies, tags };
 }
 
 type BundleSource = 'network' | 'cache';
@@ -233,12 +284,15 @@ export async function loadDataBundle(version: string, baseUrl = DEFAULT_BASE_URL
     throw new Error(`Manifest for ${version} is missing required files.`);
   }
 
-  const [recipesRes, machinesRes] = await Promise.all([
+  const [recipesRes, machinesRes, tagsRes] = await Promise.all([
     fetchJson(`${cleanBase}/${version}/recipes_clean.json`, recipesSchema),
     fetchJson(`${cleanBase}/${version}/machines.json`, machinesSchema),
+    manifest.files.includes('tags.json')
+      ? fetchJson(`${cleanBase}/${version}/tags.json`, tagsSchema).catch(() => ({ data: { tags: [] } as any }))
+      : Promise.resolve({ data: { tags: [] } }),
   ]);
 
-  const { machines, tagToMachine } = normalizeMachines(machinesRes.data);
+  const { machines, tagToMachine, machineFamilies, tags } = normalizeMachines(machinesRes.data, tagsRes.data);
   const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine));
   const items = deriveItems(normalizedRecipes);
 
@@ -255,6 +309,8 @@ export async function loadDataBundle(version: string, baseUrl = DEFAULT_BASE_URL
       description: manifest.description,
       publishedAt: manifest.publishedAt,
     } as VersionInfo,
+    machineFamilies,
+    tags,
   };
 
   const etag = [manifestRes.etag, recipesRes.etag, machinesRes.etag].filter(Boolean).join('|') || undefined;

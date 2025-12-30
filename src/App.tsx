@@ -19,7 +19,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toPng } from 'html-to-image';
-import { dataBundle as localDataBundle, extractTierInfo, type DataBundle } from './data/data';
+import { dataBundle as localDataBundle, extractTierInfo, type DataBundle, type Recipe } from './data/data';
 import { DEFAULT_BASE_URL, loadDataBundle, loadVersionIndex, type VersionEntry } from './data/remoteData';
 import { buildProducerMap, type ProducerMap } from './logic/recipes';
 import { buildCalculation, RequirementNode } from './logic/calculator';
@@ -42,7 +42,7 @@ function formatEdgeRate(value: number) {
 
 type Option = { value: string; label: string };
 
-type MachineOption = { id: string; label: string; speedMultiplier?: number };
+type MachineOption = { id: string; label: string; speedMultiplier?: number; craftingTags?: string[] };
 
 const customMachineOptions: Record<string, MachineOption[]> = {
   assembler: [
@@ -201,14 +201,18 @@ function MachineSelector({
       if (recipe.craftedIn) craftedFamilies.add(recipe.craftedIn);
     });
     return Array.from(craftedFamilies)
-      .map((id) => ({ id, label: data.machines[id]?.name ?? id }))
+      .map((id) => ({ id, label: data.tags?.[id]?.name ?? data.machines[id]?.name ?? id }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [data]);
 
-  const baseOptions: MachineOption[] = useMemo(
-    () => Object.values(data.machines).map((m) => ({ id: m.id, label: m.name })).sort((a, b) => a.label.localeCompare(b.label)),
-    [data],
-  );
+  const baseOptions: MachineOption[] = useMemo(() => {
+    const formatLabel = (m: MachineOption) =>
+      m.speedMultiplier !== undefined ? `${m.label} (${m.speedMultiplier.toFixed(2).replace(/\.00$/, '')}x)` : m.label;
+    return Object.values(data.machines)
+      .map((m) => ({ id: m.id, label: m.name, speedMultiplier: m.speedMultiplier, craftingTags: m.craftingTags }))
+      .map((m) => ({ ...m, label: formatLabel(m) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [data]);
 
   if (families.length === 0) return null;
 
@@ -221,7 +225,13 @@ function MachineSelector({
       </p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {families.map((family) => {
-          const combinedOptions = [...(customOptions[family.id] ?? []), ...baseOptions];
+          const familyOptions = baseOptions.filter(
+            (machine) =>
+              machine.id === family.id ||
+              machine.craftingTags?.includes(family.id) ||
+              data.machineFamilies?.[family.id]?.includes(machine.id),
+          );
+          const combinedOptions = [...(customOptions[family.id] ?? []), ...(familyOptions.length ? familyOptions : baseOptions)];
           return (
             <div key={family.id} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-sm font-semibold text-slate-100">{family.label}</p>
@@ -253,6 +263,11 @@ function classifyStage(current: RequirementNode, targetItemId: string): GraphNod
   if (machine.includes('smelt') || machine.includes('casting')) return 'smelting';
   return 'assembly';
 }
+
+type SavedLayout = {
+  positions: Record<string, { x: number; y: number }>;
+  viewport?: { x: number; y: number; zoom: number };
+};
 
 function buildGraphData(
   node: RequirementNode,
@@ -347,6 +362,7 @@ function buildGraphData(
 
 const CARD_WIDTH = 240;
 const CARD_HEIGHT = 130;
+const LAYOUT_STORAGE_PREFIX = 'foundry:layout:';
 
 function hashColor(input: string) {
   let hash = 0;
@@ -424,18 +440,22 @@ const MemoFlowEdge = React.memo(FlowEdge);
 function ProductionGraph({
   root,
   machineLabel,
+  storageKey,
 }: {
   root: RequirementNode;
   machineLabel: (id?: string | null) => string;
+  storageKey: string;
 }) {
   const reactFlowInstance = useReactFlow();
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [snapEnabled, setSnapEnabled] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
-  const rafRef = useRef<number>();
-  const movedRef = useRef<Record<string, boolean>>({});
   const [exporting, setExporting] = useState(false);
+  const savedLayoutRef = useRef<SavedLayout | null>(null);
+  const [pendingApplyLayout, setPendingApplyLayout] = useState(false);
+  const [hasSavedLayout, setHasSavedLayout] = useState(false);
+  const layoutStorageKey = storageKey ? `${LAYOUT_STORAGE_PREFIX}${storageKey}` : '';
   const { nodes: graphNodes, edges: graphEdges, minDepth, maxDepth } = useMemo(
     () => buildGraphData(root, machineLabel, root.itemId),
     [root, machineLabel],
@@ -539,6 +559,40 @@ function ProductionGraph({
   const [edges, setEdges] = useState<Edge<FlowEdgeData>[]>([]);
 
   useEffect(() => {
+    if (!layoutStorageKey || typeof window === 'undefined') return;
+    const raw = window.localStorage.getItem(layoutStorageKey);
+    if (!raw) {
+      savedLayoutRef.current = null;
+      setHasSavedLayout(false);
+      setPendingApplyLayout(false);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as SavedLayout;
+      savedLayoutRef.current = parsed;
+      setHasSavedLayout(true);
+      setPendingApplyLayout(true);
+    } catch {
+      savedLayoutRef.current = null;
+      setHasSavedLayout(false);
+      setPendingApplyLayout(false);
+    }
+  }, [layoutStorageKey]);
+
+  useEffect(() => {
+    if (!pendingApplyLayout || !savedLayoutRef.current) return;
+    if (nodes.length === 0) return;
+    const saved = savedLayoutRef.current;
+    setNodes((current) =>
+      current.map((n) => (saved.positions[n.id] ? { ...n, position: saved.positions[n.id], dragging: false } : n)),
+    );
+    if (saved.viewport) {
+      reactFlowInstance.setViewport(saved.viewport, { duration: 0 });
+    }
+    setPendingApplyLayout(false);
+  }, [nodes, pendingApplyLayout, reactFlowInstance]);
+
+  useEffect(() => {
     runLayout(false);
   }, [runLayout]);
 
@@ -568,8 +622,7 @@ function ProductionGraph({
   }, []);
 
   const handleDragStart = useCallback(() => setIsDragging(true), []);
-  const handleDragStop = useCallback((_e, node) => {
-    movedRef.current[node.id] = true;
+  const handleDragStop = useCallback(() => {
     setIsDragging(false);
   }, []);
 
@@ -599,6 +652,10 @@ function ProductionGraph({
       );
       const exportWidth = right - left + padding * 2;
       const exportHeight = bottom - top + padding * 2;
+      const previousWidth = flowWrapperRef.current.style.width;
+      const previousHeight = flowWrapperRef.current.style.height;
+      flowWrapperRef.current.style.width = `${exportWidth}px`;
+      flowWrapperRef.current.style.height = `${exportHeight}px`;
 
       const prevViewport = rf.getViewport ? rf.getViewport() : { x: 0, y: 0, zoom: 1 };
       rf.setViewport({ x: -left + padding, y: -top + padding, zoom: 1 }, { duration: 0 });
@@ -635,11 +692,42 @@ function ProductionGraph({
         }
       } finally {
         rf.setViewport(prevViewport, { duration: 0 });
+        flowWrapperRef.current.style.width = previousWidth;
+        flowWrapperRef.current.style.height = previousHeight;
         setExporting(false);
       }
     },
     [reactFlowInstance],
   );
+
+  const saveLayout = useCallback(() => {
+    if (!layoutStorageKey || typeof window === 'undefined') return;
+    const rfNodes = reactFlowInstance.getNodes ? reactFlowInstance.getNodes() : [];
+    if (!rfNodes.length) return;
+    const positions: Record<string, { x: number; y: number }> = {};
+    rfNodes.forEach((node) => {
+      positions[node.id] = { x: node.position.x, y: node.position.y };
+    });
+    const payload: SavedLayout = {
+      positions,
+      viewport: reactFlowInstance.getViewport ? reactFlowInstance.getViewport() : undefined,
+    };
+    window.localStorage.setItem(layoutStorageKey, JSON.stringify(payload));
+    savedLayoutRef.current = payload;
+    setHasSavedLayout(true);
+  }, [layoutStorageKey, reactFlowInstance]);
+
+  const restoreLayout = useCallback(() => {
+    if (!savedLayoutRef.current) return;
+    setPendingApplyLayout(true);
+  }, []);
+
+  const clearSavedLayout = useCallback(() => {
+    if (!layoutStorageKey || typeof window === 'undefined') return;
+    window.localStorage.removeItem(layoutStorageKey);
+    savedLayoutRef.current = null;
+    setHasSavedLayout(false);
+  }, [layoutStorageKey]);
 
   const adjacency = useMemo(() => {
     const inMap: Record<string, string[]> = {};
@@ -715,6 +803,30 @@ function ProductionGraph({
             }}
           >
             Auto layout
+          </button>
+          <button
+            type="button"
+            className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
+            onClick={restoreLayout}
+            disabled={!hasSavedLayout}
+          >
+            Load saved
+          </button>
+          <button
+            type="button"
+            className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
+            onClick={saveLayout}
+            disabled={exporting}
+          >
+            Save layout
+          </button>
+          <button
+            type="button"
+            className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
+            onClick={clearSavedLayout}
+            disabled={!hasSavedLayout}
+          >
+            Clear saved
           </button>
           <button
             type="button"
@@ -975,16 +1087,44 @@ function App() {
     [recipeOverrides, tierPreferences],
   );
 
-  const machineSpeedMultipliers = useMemo(() => {
-    const map: Record<string, number> = {};
-    Object.entries(machineChoices).forEach(([familyId, optionId]) => {
-      const custom = findCustomMachineOption(familyId, optionId);
-      if (custom?.speedMultiplier !== undefined) {
-        map[familyId] = custom.speedMultiplier;
+  const machineSelection = useMemo(() => {
+    if (!bundle) return {};
+    const map: Record<string, string> = {};
+    const families = new Set<string>();
+    Object.values(bundle.recipes).forEach((recipe) => {
+      if (recipe.craftedIn) families.add(recipe.craftedIn);
+    });
+    families.forEach((familyId) => {
+      const choice = machineChoices[familyId];
+      if (choice) {
+        map[familyId] = choice;
+        return;
+      }
+      const available = bundle.machineFamilies?.[familyId];
+      if (available?.length) {
+        map[familyId] = available[0];
+        return;
+      }
+      if (bundle.machines[familyId]) {
+        map[familyId] = familyId;
       }
     });
     return map;
-  }, [machineChoices]);
+  }, [bundle, machineChoices]);
+
+  const machineSpeedMultipliers = useMemo(() => {
+    const map: Record<string, number> = {};
+    Object.entries(machineSelection).forEach(([familyId, machineId]) => {
+      const custom = findCustomMachineOption(familyId, machineId);
+      if (custom?.speedMultiplier !== undefined) {
+        map[familyId] = custom.speedMultiplier;
+        return;
+      }
+      const multiplier = bundle?.machines[machineId]?.speedMultiplier;
+      if (multiplier !== undefined) map[familyId] = multiplier;
+    });
+    return map;
+  }, [bundle, machineSelection]);
 
   const activeVariants = useMemo(() => {
     if (!selectedItemId) return undefined;
@@ -1037,21 +1177,69 @@ function App() {
     [bundle, calculation.totals],
   );
 
+  const overrideCandidates = useMemo(() => {
+    if (!bundle) return [];
+    return Object.entries(producers)
+      .filter(([, recipes]) => recipes.length > 1)
+      .map(([itemId, recipes]) => {
+        const baseNames = new Set(recipes.map((r) => extractTierInfo(r).baseName));
+        const hasNonTier = recipes.some((r) => extractTierInfo(r).tier === undefined);
+        const onlyTierVariants = baseNames.size === 1 && !hasNonTier;
+        return onlyTierVariants ? null : { itemId, name: bundle.items[itemId]?.name ?? itemId, recipes };
+      })
+      .filter((entry): entry is { itemId: string; name: string; recipes: Recipe[] } => Boolean(entry))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [bundle, producers]);
+
   const collectWarnings = (node?: RequirementNode): string[] => {
     if (!node) return [];
     const childWarnings = node.inputs.flatMap((edge) => collectWarnings(edge.node));
     return [...node.warnings, ...childWarnings];
   };
 
+  const machineUsage = useMemo(() => {
+    if (!calculation.root) return [];
+    const totals: Record<string, { label: string; total: number }> = {};
+    const visit = (node?: RequirementNode) => {
+      if (!node) return;
+      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
+        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
+        const label = machineLabel(node.craftedIn);
+        totals[key] ??= { label, total: 0 };
+        totals[key].total += node.machinesNeeded;
+      }
+      node.inputs.forEach((edge) => visit(edge.node));
+    };
+    visit(calculation.root);
+    return Object.values(totals)
+      .filter((entry) => entry.total > 0)
+      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  }, [calculation.root, machineLabel, machineSelection]);
+
   const machineLabel = (craftedIn?: string | null) => {
     if (!craftedIn) return 'Unknown machine';
     if (!bundle) return 'Unknown machine';
-    const choiceId = machineChoices[craftedIn];
+    const choiceId = machineSelection[craftedIn] ?? machineChoices[craftedIn];
     const custom = findCustomMachineOption(craftedIn, choiceId);
     if (custom) return custom.label;
-    if (choiceId) return bundle.machines[choiceId]?.name ?? choiceId;
-    return bundle.machines[craftedIn]?.name ?? craftedIn;
+    if (choiceId) {
+      const machine = bundle.machines[choiceId];
+      if (machine) return machine.name;
+    }
+    const fallbackFamilyId = bundle.machineFamilies?.[craftedIn]?.[0];
+    if (fallbackFamilyId) {
+      const machine = bundle.machines[fallbackFamilyId];
+      if (machine) return machine.name;
+    }
+    const craftedMachine = bundle.machines[craftedIn];
+    if (craftedMachine) return craftedMachine.name;
+    return bundle.tags?.[craftedIn]?.name ?? craftedIn;
   };
+
+  const graphStorageKey = useMemo(
+    () => (bundle && calculation.root ? `${bundle.version.version ?? 'unknown'}:${calculation.root.itemId}` : 'graph'),
+    [bundle, calculation.root],
+  );
 
   const version = bundle?.version.version ?? 'unknown';
   const uiBlocked = loadingBundle || !bundle;
@@ -1238,40 +1426,32 @@ function App() {
                   shareable URL.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {Object.entries(producers)
-                    .filter(([, recipes]) => recipes.length > 1)
-                    .map(([itemId, recipes]) => ({
-                      itemId,
-                      name: bundle?.items[itemId]?.name ?? itemId,
-                      recipes,
-                    }))
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((entry) => (
-                      <div key={entry.itemId} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
-                        <p className="text-sm font-semibold text-slate-100">{entry.name}</p>
-                        <select
-                          className="input"
-                          value={selection.overrides[entry.itemId] ?? ''}
-                          onChange={(e) =>
-                            setRecipeOverrides((prev) => {
-                              const next = { ...prev };
-                              const value = e.target.value;
-                              if (!value) delete next[entry.itemId];
-                              else next[entry.itemId] = value;
-                              return next;
-                            })
-                          }
-                          disabled={uiBlocked}
-                        >
-                          <option value="">Default (tier preference)</option>
-                          {entry.recipes.map((r) => (
-                            <option key={r.id} value={r.id}>
-                              {r.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ))}
+                  {overrideCandidates.map((entry) => (
+                    <div key={entry.itemId} className="space-y-1 rounded-md border border-slate-800 bg-slate-900/50 p-3">
+                      <p className="text-sm font-semibold text-slate-100">{entry.name}</p>
+                      <select
+                        className="input"
+                        value={selection.overrides[entry.itemId] ?? ''}
+                        onChange={(e) =>
+                          setRecipeOverrides((prev) => {
+                            const next = { ...prev };
+                            const value = e.target.value;
+                            if (!value) delete next[entry.itemId];
+                            else next[entry.itemId] = value;
+                            return next;
+                          })
+                        }
+                        disabled={uiBlocked}
+                      >
+                        <option value="">Default (tier preference)</option>
+                        {entry.recipes.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
                 </div>
               </details>
             </div>
@@ -1307,6 +1487,32 @@ function App() {
               </div>
 
               <div className="card p-4">
+                <h2 className="text-lg font-semibold text-slate-100">Machines required</h2>
+                {machineUsage.length === 0 ? (
+                  <p className="text-sm text-slate-400">No machine counts available yet.</p>
+                ) : (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full table-auto text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-300">
+                          <th className="p-2">Machine</th>
+                          <th className="p-2">Count</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {machineUsage.map((row) => (
+                          <tr key={row.label} className="border-t border-slate-800">
+                            <td className="p-2">{row.label}</td>
+                            <td className="p-2">{formatDisplay(row.total)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="card p-4">
                 <h2 className="text-lg font-semibold text-slate-100">Inputs per minute (aggregated)</h2>
                 {totalsEntries.length === 0 ? (
                   <p className="text-sm text-slate-400">No inputs calculated yet.</p>
@@ -1335,7 +1541,7 @@ function App() {
               </div>
 
               <ReactFlowProvider>
-                <ProductionGraph root={calculation.root} machineLabel={machineLabel} />
+                <ProductionGraph root={calculation.root} machineLabel={machineLabel} storageKey={graphStorageKey} />
               </ReactFlowProvider>
 
               <WarningList warnings={collectWarnings(calculation.root)} />

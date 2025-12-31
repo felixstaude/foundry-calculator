@@ -476,31 +476,66 @@ function ProductionGraph({
         columns[col] ??= [];
         columns[col].push(n);
       });
-      Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-      const posMap: Record<string, { x: number; y: number; lane: number }> = {};
+      const columnOrder: Record<number, GraphNode[]> = {};
       Object.entries(columns)
         .sort(([a], [b]) => Number(a) - Number(b))
         .forEach(([colStr, list]) => {
-          const col = Number(colStr);
-          // order nodes by barycenter of parents to reduce crossings
-          const ordered = list
-            .map((node) => {
-              const incoming = graphEdges.filter((e) => e.to === node.id);
-              const parents = incoming
-                .map((e) => posMap[e.from]?.lane ?? col - 1)
-                .filter((lane) => Number.isFinite(lane));
-              const average = parents.length ? parents.reduce((a, b) => a + b, 0) / parents.length : col;
-              return { node, score: average };
-            })
-            .sort((a, b) => a.score - b.score || a.node.label.localeCompare(b.node.label));
+          columnOrder[Number(colStr)] = [...list].sort((a, b) => a.label.localeCompare(b.label));
+        });
 
-          ordered.forEach(({ node }, index) => {
-            posMap[node.id] = {
-              x: col * columnSpacing,
-              y: index * rowSpacing,
-              lane: col,
-            };
+      const colKeys = Object.keys(columnOrder)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      const getIndex = (col: number, id: string) => columnOrder[col]?.findIndex((n) => n.id === id) ?? -1;
+      const medianOf = (neighbors: string[], col: number) => {
+        const positions = neighbors
+          .map((id) => getIndex(col, id))
+          .filter((v) => v >= 0)
+          .sort((a, b) => a - b);
+        if (!positions.length) return null;
+        const mid = Math.floor(positions.length / 2);
+        return positions.length % 2 === 0 ? (positions[mid - 1] + positions[mid]) / 2 : positions[mid];
+      };
+
+      const sweep = (direction: 'down' | 'up') => {
+        const iter = direction === 'down' ? colKeys.slice(1) : colKeys.slice(0, -1).reverse();
+        iter.forEach((col) => {
+          const refCol = direction === 'down' ? col - 1 : col + 1;
+          columnOrder[col] = [...columnOrder[col]].sort((a, b) => {
+            const neighborsA =
+              direction === 'down'
+                ? graphEdges.filter((e) => e.to === a.id).map((e) => e.from)
+                : graphEdges.filter((e) => e.from === a.id).map((e) => e.to);
+            const neighborsB =
+              direction === 'down'
+                ? graphEdges.filter((e) => e.to === b.id).map((e) => e.from)
+                : graphEdges.filter((e) => e.from === b.id).map((e) => e.to);
+            const scoreA = medianOf(neighborsA, refCol);
+            const scoreB = medianOf(neighborsB, refCol);
+            if (scoreA === null && scoreB === null) return a.label.localeCompare(b.label);
+            if (scoreA === null) return 1;
+            if (scoreB === null) return -1;
+            if (scoreA === scoreB) return a.label.localeCompare(b.label);
+            return scoreA - scoreB;
           });
+        });
+      };
+
+      for (let i = 0; i < 5; i += 1) {
+        sweep('down');
+        sweep('up');
+      }
+
+      const posMap: Record<string, { x: number; y: number; lane: number }> = {};
+      Object.entries(columnOrder).forEach(([colStr, list]) => {
+        const col = Number(colStr);
+        list.forEach((node, index) => {
+          posMap[node.id] = {
+            x: col * columnSpacing,
+            y: index * rowSpacing,
+            lane: col,
+          };
         });
 
       const bundled: GraphEdge[] = [];

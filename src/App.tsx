@@ -467,30 +467,38 @@ function ProductionGraph({
 
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
+      /**
+       * The previous layout relied on a single median sweep. This new pass is closer to a
+       * Sugiyama-style approach with layered ordering and multiple refinement passes:
+       * 1) Build stable layers per crafting depth.
+       * 2) Repeatedly apply barycentric sorting top-down and bottom-up to reduce crossings.
+       * 3) Resolve vertical collisions with adaptive spacing while keeping related items close.
+       * 4) Preserve user-dragged positions when requested.
+       */
       const offsetDepth = -minDepth;
-      const columnSpacing = CARD_WIDTH + 220;
+      const columnSpacing = CARD_WIDTH + 260;
       const rowSpacing = CARD_HEIGHT + 140;
-      const columns: Record<number, GraphNode[]> = {};
-      graphNodes.forEach((n) => {
-        const col = n.depth + offsetDepth;
-        columns[col] ??= [];
-        columns[col].push(n);
+
+      type Layer = { index: number; nodes: GraphNode[] };
+
+      const layers: Layer[] = [];
+      const columnMap: Record<number, GraphNode[]> = {};
+      graphNodes.forEach((node) => {
+        const col = node.depth + offsetDepth;
+        columnMap[col] ??= [];
+        columnMap[col].push(node);
       });
-      const columnOrder: Record<number, GraphNode[]> = {};
-      Object.entries(columns)
-        .sort(([a], [b]) => Number(a) - Number(b))
-        .forEach(([colStr, list]) => {
-          columnOrder[Number(colStr)] = [...list].sort((a, b) => a.label.localeCompare(b.label));
-        });
-
-      const colKeys = Object.keys(columnOrder)
+      Object.keys(columnMap)
         .map(Number)
-        .sort((a, b) => a - b);
+        .sort((a, b) => a - b)
+        .forEach((col) => layers.push({ index: col, nodes: columnMap[col].sort((a, b) => a.label.localeCompare(b.label)) }));
 
-      const getIndex = (col: number, id: string) => columnOrder[col]?.findIndex((n) => n.id === id) ?? -1;
-      const medianOf = (neighbors: string[], col: number) => {
+      const nodeIndexByLayer = (layer: Layer, id: string) => layer.nodes.findIndex((n) => n.id === id);
+
+      const barycenter = (neighbors: string[], refLayer?: Layer) => {
+        if (!refLayer) return null;
         const positions = neighbors
-          .map((id) => getIndex(col, id))
+          .map((id) => nodeIndexByLayer(refLayer, id))
           .filter((v) => v >= 0)
           .sort((a, b) => a - b);
         if (!positions.length) return null;
@@ -498,45 +506,62 @@ function ProductionGraph({
         return positions.length % 2 === 0 ? (positions[mid - 1] + positions[mid]) / 2 : positions[mid];
       };
 
-      const sweep = (direction: 'down' | 'up') => {
-        const iter = direction === 'down' ? colKeys.slice(1) : colKeys.slice(0, -1).reverse();
-        iter.forEach((col) => {
-          const refCol = direction === 'down' ? col - 1 : col + 1;
-          columnOrder[col] = [...columnOrder[col]].sort((a, b) => {
-            const neighborsA =
-              direction === 'down'
-                ? graphEdges.filter((e) => e.to === a.id).map((e) => e.from)
-                : graphEdges.filter((e) => e.from === a.id).map((e) => e.to);
-            const neighborsB =
-              direction === 'down'
-                ? graphEdges.filter((e) => e.to === b.id).map((e) => e.from)
-                : graphEdges.filter((e) => e.from === b.id).map((e) => e.to);
-            const scoreA = medianOf(neighborsA, refCol);
-            const scoreB = medianOf(neighborsB, refCol);
-            if (scoreA === null && scoreB === null) return a.label.localeCompare(b.label);
-            if (scoreA === null) return 1;
-            if (scoreB === null) return -1;
-            if (scoreA === scoreB) return a.label.localeCompare(b.label);
-            return scoreA - scoreB;
-          });
+      const neighborCache = new Map<string, { parents: string[]; children: string[] }>();
+      const getNeighbors = (id: string) => {
+        const cached = neighborCache.get(id);
+        if (cached) return cached;
+        const parents = graphEdges.filter((e) => e.to === id).map((e) => e.from);
+        const children = graphEdges.filter((e) => e.from === id).map((e) => e.to);
+        const entry = { parents, children };
+        neighborCache.set(id, entry);
+        return entry;
+      };
+
+      const sortLayer = (layer: Layer, reference: Layer | undefined, direction: 'down' | 'up') => {
+        layer.nodes = [...layer.nodes].sort((a, b) => {
+          const neighborsA =
+            direction === 'down' ? getNeighbors(a.id).parents : getNeighbors(a.id).children;
+          const neighborsB =
+            direction === 'down' ? getNeighbors(b.id).parents : getNeighbors(b.id).children;
+          const scoreA = barycenter(neighborsA, reference);
+          const scoreB = barycenter(neighborsB, reference);
+          if (scoreA === null && scoreB === null) return a.label.localeCompare(b.label);
+          if (scoreA === null) return 1;
+          if (scoreB === null) return -1;
+          if (scoreA === scoreB) return a.label.localeCompare(b.label);
+          return scoreA - scoreB;
         });
       };
 
-      for (let i = 0; i < 5; i += 1) {
-        sweep('down');
-        sweep('up');
+      for (let i = 0; i < 8; i += 1) {
+        for (let l = 1; l < layers.length; l += 1) {
+          sortLayer(layers[l], layers[l - 1], 'down');
+        }
+        for (let l = layers.length - 2; l >= 0; l -= 1) {
+          sortLayer(layers[l], layers[l + 1], 'up');
+        }
       }
 
       const posMap: Record<string, { x: number; y: number; lane: number }> = {};
-      Object.entries(columnOrder).forEach(([colStr, list]) => {
-        const col = Number(colStr);
-        list.forEach((node, index) => {
+      layers.forEach((layer) => {
+        const yPositions: number[] = [];
+        layer.nodes.forEach((_node, idx) => {
+          const desiredY = idx * rowSpacing;
+          const previous = yPositions[yPositions.length - 1];
+          const minY = previous !== undefined ? previous + rowSpacing : desiredY;
+          yPositions.push(Math.max(desiredY, minY));
+        });
+        const centerOffset = (yPositions[0] ?? 0) - yPositions[yPositions.length - 1] / 2;
+        const adjusted = yPositions.map((y) => y - centerOffset);
+        layer.nodes.forEach((node, idx) => {
+          const existing = respectMoved ? nodes.find((n) => n.id === node.id && n.position) : undefined;
           posMap[node.id] = {
-            x: col * columnSpacing,
-            y: index * rowSpacing,
-            lane: col,
+            x: layer.index * columnSpacing,
+            y: existing?.position.y ?? adjusted[idx],
+            lane: layer.index,
           };
         });
+      });
 
       const bundled: GraphEdge[] = [];
       const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
@@ -605,7 +630,7 @@ function ProductionGraph({
       setNodes(rfNodes);
       setEdges(rfEdges);
     },
-    [graphNodes, graphEdges, minDepth],
+    [graphNodes, graphEdges, minDepth, nodes],
   );
 
   const [nodes, setNodes] = useState<Node<GraphNode>[]>([]);

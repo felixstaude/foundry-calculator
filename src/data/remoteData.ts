@@ -170,7 +170,36 @@ export async function loadVersionIndex(baseUrl = DEFAULT_BASE_URL, fallback?: Ve
   }
 }
 
-function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record<string, string>): Recipe {
+function pickCraftingTag(
+  rawTags: string[] | undefined,
+  tagToMachine: Record<string, string>,
+  machineFamilies: Record<string, string[]>,
+  machines: Record<string, Machine>,
+) {
+  if (!rawTags || rawTags.length === 0) return undefined;
+
+  const resolveFamily = (tag: string) => {
+    if (tag === 'character') return undefined;
+    if (tagToMachine[tag]) return tag;
+    if (machineFamilies[tag]) return tag;
+    const machine = machines[tag];
+    if (machine?.craftingTags?.length) return machine.craftingTags[0];
+    return undefined;
+  };
+
+  return (
+    rawTags.map((tag) => resolveFamily(tag)).find(Boolean) ??
+    rawTags.find((tag) => tag !== 'character') ??
+    rawTags[0]
+  );
+}
+
+function normalizeRecipe(
+  raw: z.infer<typeof recipeSchema>,
+  tagToMachine: Record<string, string>,
+  machineFamilies: Record<string, string[]>,
+  machines: Record<string, Machine>,
+): Recipe {
   const inputs: Record<string, number> = {};
   const outputs: Record<string, number> = {};
   raw.inputs?.forEach((entry) => {
@@ -180,12 +209,13 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
     outputs[entry.identifier] = entry.amount;
   });
 
-  const tagId = raw.tags?.[0];
+  const recipeName = raw.name ?? fallbackNameFromId(raw.identifier);
+  const tagId = pickCraftingTag(raw.tags, tagToMachine, machineFamilies, machines);
   return {
     id: raw.identifier,
-    wikiTitle: raw.name ?? raw.identifier,
-    name: raw.name ?? raw.identifier,
-    craftedIn: tagId ?? tagToMachine[tagId] ?? undefined,
+    wikiTitle: recipeName,
+    name: recipeName,
+    craftedIn: tagId ?? undefined,
     baseTimeSec: raw.timeMs !== undefined ? raw.timeMs / 1000 : undefined,
     inputs,
     outputs,
@@ -193,11 +223,20 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
 }
 
 function fallbackNameFromId(id: string) {
-  return id
+  const cleaned = id
     .replace(/^_+/, '')
+    .replace(/^base[_-]?/i, '')
     .replace(/[_@]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+
+  if (!cleaned) return id;
+
+  return cleaned
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function deriveItems(recipes: Recipe[]): Record<string, Item> {
@@ -293,7 +332,7 @@ export async function loadDataBundle(version: string, baseUrl = DEFAULT_BASE_URL
   ]);
 
   const { machines, tagToMachine, machineFamilies, tags } = normalizeMachines(machinesRes.data, tagsRes.data);
-  const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine));
+  const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine, machineFamilies, machines));
   const items = deriveItems(normalizedRecipes);
 
   const bundle: DataBundle = {

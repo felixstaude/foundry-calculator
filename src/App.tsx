@@ -468,6 +468,8 @@ function ProductionGraph({
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
       const offsetDepth = -minDepth;
+      const columnSpacing = CARD_WIDTH + 220;
+      const rowSpacing = CARD_HEIGHT + 140;
       const columns: Record<number, GraphNode[]> = {};
       graphNodes.forEach((n) => {
         const col = n.depth + offsetDepth;
@@ -476,16 +478,30 @@ function ProductionGraph({
       });
       Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
       const posMap: Record<string, { x: number; y: number; lane: number }> = {};
-      Object.entries(columns).forEach(([colStr, list]) => {
-        const col = Number(colStr);
-        list.forEach((node, index) => {
-          posMap[node.id] = {
-            x: col * (CARD_WIDTH + 120),
-            y: index * (CARD_HEIGHT + 80),
-            lane: col,
-          };
+      Object.entries(columns)
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .forEach(([colStr, list]) => {
+          const col = Number(colStr);
+          // order nodes by barycenter of parents to reduce crossings
+          const ordered = list
+            .map((node) => {
+              const incoming = graphEdges.filter((e) => e.to === node.id);
+              const parents = incoming
+                .map((e) => posMap[e.from]?.lane ?? col - 1)
+                .filter((lane) => Number.isFinite(lane));
+              const average = parents.length ? parents.reduce((a, b) => a + b, 0) / parents.length : col;
+              return { node, score: average };
+            })
+            .sort((a, b) => a.score - b.score || a.node.label.localeCompare(b.node.label));
+
+          ordered.forEach(({ node }, index) => {
+            posMap[node.id] = {
+              x: col * columnSpacing,
+              y: index * rowSpacing,
+              lane: col,
+            };
+          });
         });
-      });
 
       const bundled: GraphEdge[] = [];
       const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;
@@ -657,9 +673,10 @@ function ProductionGraph({
       const previousHeight = flowWrapperRef.current.style.height;
       flowWrapperRef.current.style.width = `${exportWidth}px`;
       flowWrapperRef.current.style.height = `${exportHeight}px`;
+      flowWrapperRef.current.style.backgroundColor = '#0f172a';
 
       const prevViewport = rf.getViewport ? rf.getViewport() : { x: 0, y: 0, zoom: 1 };
-      const targetViewport = getViewportForBounds(paddedBounds, { width: exportWidth, height: exportHeight }, 0.1, 2);
+      const targetViewport = getViewportForBounds(paddedBounds, { width: exportWidth, height: exportHeight }, 0.02, 2);
       rf.setViewport(targetViewport, { duration: 0 });
       setExporting(true);
       await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -696,6 +713,7 @@ function ProductionGraph({
         rf.setViewport(prevViewport, { duration: 0 });
         flowWrapperRef.current.style.width = previousWidth;
         flowWrapperRef.current.style.height = previousHeight;
+        flowWrapperRef.current.style.backgroundColor = '';
         setExporting(false);
       }
     },
@@ -917,7 +935,7 @@ function ProductionGraph({
           style={{ background: 'transparent' }}
         >
           <Background color={snapEnabled ? '#a5b4fc' : '#475569'} gap={20} size={1} />
-          <Controls showInteractive={false} />
+          {!exporting && <Controls showInteractive={false} />}
         </ReactFlow>
       </div>
     </div>

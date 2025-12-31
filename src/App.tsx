@@ -977,7 +977,7 @@ function ProductionGraph({
   );
 }
 
-export default function App() {
+const App = () => {
   const [selectedVersion, setSelectedVersion] = useState<string>(() => {
     if (typeof window === 'undefined') return LOCAL_VERSION_FALLBACK;
     const params = new URLSearchParams(window.location.search);
@@ -1639,4 +1639,6 @@ export default function App() {
       </div>
     </div>
   );
-}
+};
+
+export default App;

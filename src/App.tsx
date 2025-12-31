@@ -1197,25 +1197,6 @@ function App() {
     return [...node.warnings, ...childWarnings];
   };
 
-  const machineUsage = useMemo(() => {
-    if (!calculation.root) return [];
-    const totals: Record<string, { label: string; total: number }> = {};
-    const visit = (node?: RequirementNode) => {
-      if (!node) return;
-      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
-        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
-        const label = machineLabel(node.craftedIn);
-        totals[key] ??= { label, total: 0 };
-        totals[key].total += node.machinesNeeded;
-      }
-      node.inputs.forEach((edge) => visit(edge.node));
-    };
-    visit(calculation.root);
-    return Object.values(totals)
-      .filter((entry) => entry.total > 0)
-      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
-  }, [calculation.root, machineLabel, machineSelection]);
-
   const machineLabel = (craftedIn?: string | null) => {
     if (!craftedIn) return 'Unknown machine';
     if (!bundle) return 'Unknown machine';
@@ -1235,6 +1216,25 @@ function App() {
     if (craftedMachine) return craftedMachine.name;
     return bundle.tags?.[craftedIn]?.name ?? craftedIn;
   };
+
+  const machineUsage = useMemo(() => {
+    if (!calculation.root) return [];
+    const totals: Record<string, { label: string; total: number }> = {};
+    const visit = (node?: RequirementNode) => {
+      if (!node) return;
+      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
+        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
+        const label = machineLabel(node.craftedIn);
+        totals[key] ??= { label, total: 0 };
+        totals[key].total += node.machinesNeeded;
+      }
+      node.inputs.forEach((edge) => visit(edge.node));
+    };
+    visit(calculation.root);
+    return Object.values(totals)
+      .filter((entry) => entry.total > 0)
+      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  }, [calculation.root, machineLabel, machineSelection]);
 
   const graphStorageKey = useMemo(
     () => (bundle && calculation.root ? `${bundle.version.version ?? 'unknown'}:${calculation.root.itemId}` : 'graph'),

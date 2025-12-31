@@ -176,8 +176,8 @@ function WarningList({ warnings }: { warnings: string[] }) {
     <div className="rounded-md border border-amber-500/50 bg-amber-950/40 p-3 text-amber-100">
       <p className="text-sm font-semibold">Warnings</p>
       <ul className="list-disc pl-5 text-sm">
-        {warnings.map((w) => (
-          <li key={w}>{w}</li>
+        {warnings.map((w, idx) => (
+          <li key={`${w}-${idx}`}>{w}</li>
         ))}
       </ul>
     </div>
@@ -465,6 +465,9 @@ function ProductionGraph({
 
   const lanePalette = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#38bdf8', '#c084fc'];
 
+  const [nodes, setNodes] = useState<Node<GraphNode>[]>([]);
+  const [edges, setEdges] = useState<Edge<FlowEdgeData>[]>([]);
+
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
       /**
@@ -632,9 +635,6 @@ function ProductionGraph({
     },
     [graphNodes, graphEdges, minDepth, nodes],
   );
-
-  const [nodes, setNodes] = useState<Node<GraphNode>[]>([]);
-  const [edges, setEdges] = useState<Edge<FlowEdgeData>[]>([]);
 
   useEffect(() => {
     if (!layoutStorageKey || typeof window === 'undefined') return;

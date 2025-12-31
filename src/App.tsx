@@ -12,6 +12,8 @@ import ReactFlow, {
   applyNodeChanges,
   applyEdgeChanges,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
   type EdgeProps,
   type NodeProps,
   type Edge,
@@ -642,23 +644,23 @@ function ProductionGraph({
       if (!nodesToExport || nodesToExport.length === 0) return;
 
       const padding = 100;
-      const left = Math.min(...nodesToExport.map((n) => n.positionAbsolute?.x ?? n.position.x));
-      const top = Math.min(...nodesToExport.map((n) => n.positionAbsolute?.y ?? n.position.y));
-      const right = Math.max(
-        ...nodesToExport.map((n) => (n.positionAbsolute?.x ?? n.position.x) + (n.width ?? CARD_WIDTH)),
-      );
-      const bottom = Math.max(
-        ...nodesToExport.map((n) => (n.positionAbsolute?.y ?? n.position.y) + (n.height ?? CARD_HEIGHT)),
-      );
-      const exportWidth = right - left + padding * 2;
-      const exportHeight = bottom - top + padding * 2;
+      const bounds = getNodesBounds(nodesToExport);
+      const exportWidth = bounds.width + padding * 2;
+      const exportHeight = bounds.height + padding * 2;
+      const paddedBounds = {
+        x: bounds.x - padding,
+        y: bounds.y - padding,
+        width: exportWidth,
+        height: exportHeight,
+      };
       const previousWidth = flowWrapperRef.current.style.width;
       const previousHeight = flowWrapperRef.current.style.height;
       flowWrapperRef.current.style.width = `${exportWidth}px`;
       flowWrapperRef.current.style.height = `${exportHeight}px`;
 
       const prevViewport = rf.getViewport ? rf.getViewport() : { x: 0, y: 0, zoom: 1 };
-      rf.setViewport({ x: -left + padding, y: -top + padding, zoom: 1 }, { duration: 0 });
+      const targetViewport = getViewportForBounds(paddedBounds, { width: exportWidth, height: exportHeight }, 0.1, 2);
+      rf.setViewport(targetViewport, { duration: 0 });
       setExporting(true);
       await new Promise((resolve) => requestAnimationFrame(resolve));
 
@@ -700,6 +702,20 @@ function ProductionGraph({
     [reactFlowInstance],
   );
 
+  const encodeLayout = (payload: SavedLayout) => {
+    const json = JSON.stringify(payload);
+    return btoa(unescape(encodeURIComponent(json)));
+  };
+
+  const decodeLayout = (code: string): SavedLayout | null => {
+    try {
+      const json = decodeURIComponent(atob(code));
+      return JSON.parse(json) as SavedLayout;
+    } catch {
+      return null;
+    }
+  };
+
   const saveLayout = useCallback(() => {
     if (!layoutStorageKey || typeof window === 'undefined') return;
     const rfNodes = reactFlowInstance.getNodes ? reactFlowInstance.getNodes() : [];
@@ -715,9 +731,27 @@ function ProductionGraph({
     window.localStorage.setItem(layoutStorageKey, JSON.stringify(payload));
     savedLayoutRef.current = payload;
     setHasSavedLayout(true);
+    const code = encodeLayout(payload);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(code).catch(() => {});
+    }
+    window.prompt('Layout code (copy to share or store):', code);
   }, [layoutStorageKey, reactFlowInstance]);
 
   const restoreLayout = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const input = window.prompt('Paste layout code to load:') ?? '';
+      if (!input.trim()) return;
+      const parsed = decodeLayout(input.trim());
+      if (!parsed) {
+        window.alert('Invalid layout code');
+        return;
+      }
+      savedLayoutRef.current = parsed;
+      setPendingApplyLayout(true);
+      setHasSavedLayout(true);
+      return;
+    }
     if (!savedLayoutRef.current) return;
     setPendingApplyLayout(true);
   }, []);
@@ -808,7 +842,6 @@ function ProductionGraph({
             type="button"
             className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
             onClick={restoreLayout}
-            disabled={!hasSavedLayout}
           >
             Load saved
           </button>
@@ -1197,25 +1230,6 @@ function App() {
     return [...node.warnings, ...childWarnings];
   };
 
-  const machineUsage = useMemo(() => {
-    if (!calculation.root) return [];
-    const totals: Record<string, { label: string; total: number }> = {};
-    const visit = (node?: RequirementNode) => {
-      if (!node) return;
-      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
-        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
-        const label = machineLabel(node.craftedIn);
-        totals[key] ??= { label, total: 0 };
-        totals[key].total += node.machinesNeeded;
-      }
-      node.inputs.forEach((edge) => visit(edge.node));
-    };
-    visit(calculation.root);
-    return Object.values(totals)
-      .filter((entry) => entry.total > 0)
-      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
-  }, [calculation.root, machineLabel, machineSelection]);
-
   const machineLabel = (craftedIn?: string | null) => {
     if (!craftedIn) return 'Unknown machine';
     if (!bundle) return 'Unknown machine';
@@ -1235,6 +1249,25 @@ function App() {
     if (craftedMachine) return craftedMachine.name;
     return bundle.tags?.[craftedIn]?.name ?? craftedIn;
   };
+
+  const machineUsage = useMemo(() => {
+    if (!calculation.root) return [];
+    const totals: Record<string, { label: string; total: number }> = {};
+    const visit = (node?: RequirementNode) => {
+      if (!node) return;
+      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
+        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
+        const label = machineLabel(node.craftedIn);
+        totals[key] ??= { label, total: 0 };
+        totals[key].total += node.machinesNeeded;
+      }
+      node.inputs.forEach((edge) => visit(edge.node));
+    };
+    visit(calculation.root);
+    return Object.values(totals)
+      .filter((entry) => entry.total > 0)
+      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  }, [calculation.root, machineLabel, machineSelection]);
 
   const graphStorageKey = useMemo(
     () => (bundle && calculation.root ? `${bundle.version.version ?? 'unknown'}:${calculation.root.itemId}` : 'graph'),

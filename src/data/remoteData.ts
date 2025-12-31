@@ -33,6 +33,10 @@ const machinesSchema = z.object({
   machines: z.record(machineEntrySchema),
 });
 
+const speedsByTagSchema = z.object({
+  tags: z.record(z.array(z.number())),
+});
+
 const recipeIoSchema = z.object({
   identifier: z.string(),
   amount: z.number(),
@@ -170,7 +174,36 @@ export async function loadVersionIndex(baseUrl = DEFAULT_BASE_URL, fallback?: Ve
   }
 }
 
-function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record<string, string>): Recipe {
+function pickCraftingTag(
+  rawTags: string[] | undefined,
+  tagToMachine: Record<string, string>,
+  machineFamilies: Record<string, string[]>,
+  machines: Record<string, Machine>,
+) {
+  if (!rawTags || rawTags.length === 0) return undefined;
+
+  const resolveFamily = (tag: string) => {
+    if (tag === 'character') return undefined;
+    if (tagToMachine[tag]) return tag;
+    if (machineFamilies[tag]) return tag;
+    const machine = machines[tag];
+    if (machine?.craftingTags?.length) return machine.craftingTags[0];
+    return undefined;
+  };
+
+  return (
+    rawTags.map((tag) => resolveFamily(tag)).find(Boolean) ??
+    rawTags.find((tag) => tag !== 'character') ??
+    rawTags[0]
+  );
+}
+
+function normalizeRecipe(
+  raw: z.infer<typeof recipeSchema>,
+  tagToMachine: Record<string, string>,
+  machineFamilies: Record<string, string[]>,
+  machines: Record<string, Machine>,
+): Recipe {
   const inputs: Record<string, number> = {};
   const outputs: Record<string, number> = {};
   raw.inputs?.forEach((entry) => {
@@ -180,12 +213,13 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
     outputs[entry.identifier] = entry.amount;
   });
 
-  const tagId = raw.tags?.[0];
+  const recipeName = raw.name ?? fallbackNameFromId(raw.identifier);
+  const tagId = pickCraftingTag(raw.tags, tagToMachine, machineFamilies, machines);
   return {
     id: raw.identifier,
-    wikiTitle: raw.name ?? raw.identifier,
-    name: raw.name ?? raw.identifier,
-    craftedIn: tagId ?? tagToMachine[tagId] ?? undefined,
+    wikiTitle: recipeName,
+    name: recipeName,
+    craftedIn: tagId ?? undefined,
     baseTimeSec: raw.timeMs !== undefined ? raw.timeMs / 1000 : undefined,
     inputs,
     outputs,
@@ -193,11 +227,20 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
 }
 
 function fallbackNameFromId(id: string) {
-  return id
+  const cleaned = id
     .replace(/^_+/, '')
+    .replace(/^base[_-]?/i, '')
     .replace(/[_@]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+
+  if (!cleaned) return id;
+
+  return cleaned
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function deriveItems(recipes: Recipe[]): Record<string, Item> {
@@ -210,10 +253,15 @@ function deriveItems(recipes: Recipe[]): Record<string, Item> {
     });
     outputs.forEach((id) => {
       const preferredName =
-        (id === recipe.id || outputs.length === 1) && recipeName
-          ? recipeName
-          : map[id]?.name ?? fallbackNameFromId(id) ?? id;
-      map[id] = { id, name: preferredName };
+        recipe.name ||
+        (outputs.length === 1 && recipeName) ||
+        map[id]?.name ||
+        recipeName ||
+        fallbackNameFromId(id) ||
+        id;
+      const existing = map[id]?.name;
+      const shouldReplace = !existing || existing === fallbackNameFromId(id) || existing === id;
+      map[id] = { id, name: shouldReplace ? preferredName : existing };
     });
   });
   return map;
@@ -222,6 +270,7 @@ function deriveItems(recipes: Recipe[]): Record<string, Item> {
 function normalizeMachines(
   raw: z.infer<typeof machinesSchema>,
   rawTags?: z.infer<typeof tagsSchema>,
+  speedsByTag?: z.infer<typeof speedsByTagSchema>,
 ): {
   machines: Record<string, Machine>;
   tagToMachine: Record<string, string>;
@@ -248,6 +297,28 @@ function normalizeMachines(
       tagToMachine[tag] ??= key;
       machineFamilies[tag] ??= [];
       machineFamilies[tag].push(key);
+    });
+  });
+
+  // synthesize tiered machines from speeds_by_tag when machines are missing
+  Object.entries(speedsByTag?.tags ?? {}).forEach(([tagId, speedList]) => {
+    speedList.forEach((multiplier, index) => {
+      const machineId = `${tagId}@${multiplier}`;
+      if (!machines[machineId]) {
+        const tiers = ['I', 'II', 'III', 'IV', 'V'];
+        const tierLabel = tiers[index] ?? `${index + 1}`;
+        machines[machineId] = {
+          id: machineId,
+          name: `${tagId} Tier ${tierLabel}`,
+          craftingTags: [tagId],
+          speedMultiplier: multiplier,
+        };
+      }
+      tagToMachine[tagId] ??= machineId;
+      machineFamilies[tagId] ??= [];
+      if (!machineFamilies[tagId].includes(machineId)) {
+        machineFamilies[tagId].push(machineId);
+      }
     });
   });
 
@@ -284,16 +355,19 @@ export async function loadDataBundle(version: string, baseUrl = DEFAULT_BASE_URL
     throw new Error(`Manifest for ${version} is missing required files.`);
   }
 
-  const [recipesRes, machinesRes, tagsRes] = await Promise.all([
+  const [recipesRes, machinesRes, tagsRes, speedsRes] = await Promise.all([
     fetchJson(`${cleanBase}/${version}/recipes_clean.json`, recipesSchema),
     fetchJson(`${cleanBase}/${version}/machines.json`, machinesSchema),
     manifest.files.includes('tags.json')
       ? fetchJson(`${cleanBase}/${version}/tags.json`, tagsSchema).catch(() => ({ data: { tags: [] } as any }))
       : Promise.resolve({ data: { tags: [] } }),
+    manifest.files.includes('speeds_by_tag.json')
+      ? fetchJson(`${cleanBase}/${version}/speeds_by_tag.json`, speedsByTagSchema).catch(() => ({ data: { tags: {} } as any }))
+      : Promise.resolve({ data: { tags: {} } }),
   ]);
 
-  const { machines, tagToMachine, machineFamilies, tags } = normalizeMachines(machinesRes.data, tagsRes.data);
-  const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine));
+  const { machines, tagToMachine, machineFamilies, tags } = normalizeMachines(machinesRes.data, tagsRes.data, speedsRes.data);
+  const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine, machineFamilies, machines));
   const items = deriveItems(normalizedRecipes);
 
   const bundle: DataBundle = {

@@ -12,6 +12,8 @@ import ReactFlow, {
   applyNodeChanges,
   applyEdgeChanges,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
   type EdgeProps,
   type NodeProps,
   type Edge,
@@ -466,20 +468,72 @@ function ProductionGraph({
   const runLayout = useCallback(
     async (respectMoved: boolean) => {
       const offsetDepth = -minDepth;
+      const columnSpacing = CARD_WIDTH + 220;
+      const rowSpacing = CARD_HEIGHT + 140;
       const columns: Record<number, GraphNode[]> = {};
       graphNodes.forEach((n) => {
         const col = n.depth + offsetDepth;
         columns[col] ??= [];
         columns[col].push(n);
       });
-      Object.values(columns).forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
+      const columnOrder: Record<number, GraphNode[]> = {};
+      Object.entries(columns)
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .forEach(([colStr, list]) => {
+          columnOrder[Number(colStr)] = [...list].sort((a, b) => a.label.localeCompare(b.label));
+        });
+
+      const colKeys = Object.keys(columnOrder)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      const getIndex = (col: number, id: string) => columnOrder[col]?.findIndex((n) => n.id === id) ?? -1;
+      const medianOf = (neighbors: string[], col: number) => {
+        const positions = neighbors
+          .map((id) => getIndex(col, id))
+          .filter((v) => v >= 0)
+          .sort((a, b) => a - b);
+        if (!positions.length) return null;
+        const mid = Math.floor(positions.length / 2);
+        return positions.length % 2 === 0 ? (positions[mid - 1] + positions[mid]) / 2 : positions[mid];
+      };
+
+      const sweep = (direction: 'down' | 'up') => {
+        const iter = direction === 'down' ? colKeys.slice(1) : colKeys.slice(0, -1).reverse();
+        iter.forEach((col) => {
+          const refCol = direction === 'down' ? col - 1 : col + 1;
+          columnOrder[col] = [...columnOrder[col]].sort((a, b) => {
+            const neighborsA =
+              direction === 'down'
+                ? graphEdges.filter((e) => e.to === a.id).map((e) => e.from)
+                : graphEdges.filter((e) => e.from === a.id).map((e) => e.to);
+            const neighborsB =
+              direction === 'down'
+                ? graphEdges.filter((e) => e.to === b.id).map((e) => e.from)
+                : graphEdges.filter((e) => e.from === b.id).map((e) => e.to);
+            const scoreA = medianOf(neighborsA, refCol);
+            const scoreB = medianOf(neighborsB, refCol);
+            if (scoreA === null && scoreB === null) return a.label.localeCompare(b.label);
+            if (scoreA === null) return 1;
+            if (scoreB === null) return -1;
+            if (scoreA === scoreB) return a.label.localeCompare(b.label);
+            return scoreA - scoreB;
+          });
+        });
+      };
+
+      for (let i = 0; i < 5; i += 1) {
+        sweep('down');
+        sweep('up');
+      }
+
       const posMap: Record<string, { x: number; y: number; lane: number }> = {};
-      Object.entries(columns).forEach(([colStr, list]) => {
+      Object.entries(columnOrder).forEach(([colStr, list]) => {
         const col = Number(colStr);
         list.forEach((node, index) => {
           posMap[node.id] = {
-            x: col * (CARD_WIDTH + 120),
-            y: index * (CARD_HEIGHT + 80),
+            x: col * columnSpacing,
+            y: index * rowSpacing,
             lane: col,
           };
         });
@@ -642,23 +696,24 @@ function ProductionGraph({
       if (!nodesToExport || nodesToExport.length === 0) return;
 
       const padding = 100;
-      const left = Math.min(...nodesToExport.map((n) => n.positionAbsolute?.x ?? n.position.x));
-      const top = Math.min(...nodesToExport.map((n) => n.positionAbsolute?.y ?? n.position.y));
-      const right = Math.max(
-        ...nodesToExport.map((n) => (n.positionAbsolute?.x ?? n.position.x) + (n.width ?? CARD_WIDTH)),
-      );
-      const bottom = Math.max(
-        ...nodesToExport.map((n) => (n.positionAbsolute?.y ?? n.position.y) + (n.height ?? CARD_HEIGHT)),
-      );
-      const exportWidth = right - left + padding * 2;
-      const exportHeight = bottom - top + padding * 2;
+      const bounds = getNodesBounds(nodesToExport);
+      const exportWidth = bounds.width + padding * 2;
+      const exportHeight = bounds.height + padding * 2;
+      const paddedBounds = {
+        x: bounds.x - padding,
+        y: bounds.y - padding,
+        width: exportWidth,
+        height: exportHeight,
+      };
       const previousWidth = flowWrapperRef.current.style.width;
       const previousHeight = flowWrapperRef.current.style.height;
       flowWrapperRef.current.style.width = `${exportWidth}px`;
       flowWrapperRef.current.style.height = `${exportHeight}px`;
+      flowWrapperRef.current.style.backgroundColor = '#0f172a';
 
       const prevViewport = rf.getViewport ? rf.getViewport() : { x: 0, y: 0, zoom: 1 };
-      rf.setViewport({ x: -left + padding, y: -top + padding, zoom: 1 }, { duration: 0 });
+      const targetViewport = getViewportForBounds(paddedBounds, { width: exportWidth, height: exportHeight }, 0.02, 2);
+      rf.setViewport(targetViewport, { duration: 0 });
       setExporting(true);
       await new Promise((resolve) => requestAnimationFrame(resolve));
 
@@ -694,11 +749,26 @@ function ProductionGraph({
         rf.setViewport(prevViewport, { duration: 0 });
         flowWrapperRef.current.style.width = previousWidth;
         flowWrapperRef.current.style.height = previousHeight;
+        flowWrapperRef.current.style.backgroundColor = '';
         setExporting(false);
       }
     },
     [reactFlowInstance],
   );
+
+  const encodeLayout = (payload: SavedLayout) => {
+    const json = JSON.stringify(payload);
+    return btoa(unescape(encodeURIComponent(json)));
+  };
+
+  const decodeLayout = (code: string): SavedLayout | null => {
+    try {
+      const json = decodeURIComponent(atob(code));
+      return JSON.parse(json) as SavedLayout;
+    } catch {
+      return null;
+    }
+  };
 
   const saveLayout = useCallback(() => {
     if (!layoutStorageKey || typeof window === 'undefined') return;
@@ -715,9 +785,27 @@ function ProductionGraph({
     window.localStorage.setItem(layoutStorageKey, JSON.stringify(payload));
     savedLayoutRef.current = payload;
     setHasSavedLayout(true);
+    const code = encodeLayout(payload);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(code).catch(() => {});
+    }
+    window.prompt('Layout code (copy to share or store):', code);
   }, [layoutStorageKey, reactFlowInstance]);
 
   const restoreLayout = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const input = window.prompt('Paste layout code to load:') ?? '';
+      if (!input.trim()) return;
+      const parsed = decodeLayout(input.trim());
+      if (!parsed) {
+        window.alert('Invalid layout code');
+        return;
+      }
+      savedLayoutRef.current = parsed;
+      setPendingApplyLayout(true);
+      setHasSavedLayout(true);
+      return;
+    }
     if (!savedLayoutRef.current) return;
     setPendingApplyLayout(true);
   }, []);
@@ -808,7 +896,6 @@ function ProductionGraph({
             type="button"
             className="rounded-md bg-slate-800 px-3 py-1 font-semibold text-slate-100 hover:bg-slate-700 disabled:opacity-60"
             onClick={restoreLayout}
-            disabled={!hasSavedLayout}
           >
             Load saved
           </button>
@@ -884,7 +971,7 @@ function ProductionGraph({
           style={{ background: 'transparent' }}
         >
           <Background color={snapEnabled ? '#a5b4fc' : '#475569'} gap={20} size={1} />
-          <Controls showInteractive={false} />
+          {!exporting && <Controls showInteractive={false} />}
         </ReactFlow>
       </div>
     </div>
@@ -1197,25 +1284,6 @@ function App() {
     return [...node.warnings, ...childWarnings];
   };
 
-  const machineUsage = useMemo(() => {
-    if (!calculation.root) return [];
-    const totals: Record<string, { label: string; total: number }> = {};
-    const visit = (node?: RequirementNode) => {
-      if (!node) return;
-      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
-        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
-        const label = machineLabel(node.craftedIn);
-        totals[key] ??= { label, total: 0 };
-        totals[key].total += node.machinesNeeded;
-      }
-      node.inputs.forEach((edge) => visit(edge.node));
-    };
-    visit(calculation.root);
-    return Object.values(totals)
-      .filter((entry) => entry.total > 0)
-      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
-  }, [calculation.root, machineLabel, machineSelection]);
-
   const machineLabel = (craftedIn?: string | null) => {
     if (!craftedIn) return 'Unknown machine';
     if (!bundle) return 'Unknown machine';
@@ -1235,6 +1303,25 @@ function App() {
     if (craftedMachine) return craftedMachine.name;
     return bundle.tags?.[craftedIn]?.name ?? craftedIn;
   };
+
+  const machineUsage = useMemo(() => {
+    if (!calculation.root) return [];
+    const totals: Record<string, { label: string; total: number }> = {};
+    const visit = (node?: RequirementNode) => {
+      if (!node) return;
+      if (node.machinesNeeded !== undefined && node.machinesNeeded !== null && Number.isFinite(node.machinesNeeded) && node.craftedIn) {
+        const key = machineSelection[node.craftedIn] ?? node.craftedIn;
+        const label = machineLabel(node.craftedIn);
+        totals[key] ??= { label, total: 0 };
+        totals[key].total += node.machinesNeeded;
+      }
+      node.inputs.forEach((edge) => visit(edge.node));
+    };
+    visit(calculation.root);
+    return Object.values(totals)
+      .filter((entry) => entry.total > 0)
+      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  }, [calculation.root, machineLabel, machineSelection]);
 
   const graphStorageKey = useMemo(
     () => (bundle && calculation.root ? `${bundle.version.version ?? 'unknown'}:${calculation.root.itemId}` : 'graph'),

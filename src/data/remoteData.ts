@@ -170,6 +170,15 @@ export async function loadVersionIndex(baseUrl = DEFAULT_BASE_URL, fallback?: Ve
   }
 }
 
+function pickCraftingTag(rawTags: string[] | undefined, tagToMachine: Record<string, string>) {
+  if (!rawTags || rawTags.length === 0) return undefined;
+  return (
+    rawTags.find((tag) => tagToMachine[tag]) ??
+    rawTags.find((tag) => tag !== 'character') ??
+    rawTags[0]
+  );
+}
+
 function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record<string, string>): Recipe {
   const inputs: Record<string, number> = {};
   const outputs: Record<string, number> = {};
@@ -180,12 +189,12 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
     outputs[entry.identifier] = entry.amount;
   });
 
-  const tagId = raw.tags?.[0];
+  const tagId = pickCraftingTag(raw.tags, tagToMachine);
   return {
     id: raw.identifier,
     wikiTitle: raw.name ?? raw.identifier,
     name: raw.name ?? raw.identifier,
-    craftedIn: tagId ?? tagToMachine[tagId] ?? undefined,
+    craftedIn: tagId ?? undefined,
     baseTimeSec: raw.timeMs !== undefined ? raw.timeMs / 1000 : undefined,
     inputs,
     outputs,
@@ -193,11 +202,20 @@ function normalizeRecipe(raw: z.infer<typeof recipeSchema>, tagToMachine: Record
 }
 
 function fallbackNameFromId(id: string) {
-  return id
+  const cleaned = id
     .replace(/^_+/, '')
+    .replace(/^base[_-]?/i, '')
     .replace(/[_@]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+
+  if (!cleaned) return id;
+
+  return cleaned
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function deriveItems(recipes: Recipe[]): Record<string, Item> {

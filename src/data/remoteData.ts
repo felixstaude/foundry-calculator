@@ -33,6 +33,10 @@ const machinesSchema = z.object({
   machines: z.record(machineEntrySchema),
 });
 
+const speedsByTagSchema = z.object({
+  tags: z.record(z.array(z.number())),
+});
+
 const recipeIoSchema = z.object({
   identifier: z.string(),
   amount: z.number(),
@@ -249,10 +253,15 @@ function deriveItems(recipes: Recipe[]): Record<string, Item> {
     });
     outputs.forEach((id) => {
       const preferredName =
-        (id === recipe.id || outputs.length === 1) && recipeName
-          ? recipeName
-          : map[id]?.name ?? fallbackNameFromId(id) ?? id;
-      map[id] = { id, name: preferredName };
+        recipe.name ||
+        (outputs.length === 1 && recipeName) ||
+        map[id]?.name ||
+        recipeName ||
+        fallbackNameFromId(id) ||
+        id;
+      const existing = map[id]?.name;
+      const shouldReplace = !existing || existing === fallbackNameFromId(id) || existing === id;
+      map[id] = { id, name: shouldReplace ? preferredName : existing };
     });
   });
   return map;
@@ -261,6 +270,7 @@ function deriveItems(recipes: Recipe[]): Record<string, Item> {
 function normalizeMachines(
   raw: z.infer<typeof machinesSchema>,
   rawTags?: z.infer<typeof tagsSchema>,
+  speedsByTag?: z.infer<typeof speedsByTagSchema>,
 ): {
   machines: Record<string, Machine>;
   tagToMachine: Record<string, string>;
@@ -287,6 +297,28 @@ function normalizeMachines(
       tagToMachine[tag] ??= key;
       machineFamilies[tag] ??= [];
       machineFamilies[tag].push(key);
+    });
+  });
+
+  // synthesize tiered machines from speeds_by_tag when machines are missing
+  Object.entries(speedsByTag?.tags ?? {}).forEach(([tagId, speedList]) => {
+    speedList.forEach((multiplier, index) => {
+      const machineId = `${tagId}@${multiplier}`;
+      if (!machines[machineId]) {
+        const tiers = ['I', 'II', 'III', 'IV', 'V'];
+        const tierLabel = tiers[index] ?? `${index + 1}`;
+        machines[machineId] = {
+          id: machineId,
+          name: `${tagId} Tier ${tierLabel}`,
+          craftingTags: [tagId],
+          speedMultiplier: multiplier,
+        };
+      }
+      tagToMachine[tagId] ??= machineId;
+      machineFamilies[tagId] ??= [];
+      if (!machineFamilies[tagId].includes(machineId)) {
+        machineFamilies[tagId].push(machineId);
+      }
     });
   });
 
@@ -323,15 +355,18 @@ export async function loadDataBundle(version: string, baseUrl = DEFAULT_BASE_URL
     throw new Error(`Manifest for ${version} is missing required files.`);
   }
 
-  const [recipesRes, machinesRes, tagsRes] = await Promise.all([
+  const [recipesRes, machinesRes, tagsRes, speedsRes] = await Promise.all([
     fetchJson(`${cleanBase}/${version}/recipes_clean.json`, recipesSchema),
     fetchJson(`${cleanBase}/${version}/machines.json`, machinesSchema),
     manifest.files.includes('tags.json')
       ? fetchJson(`${cleanBase}/${version}/tags.json`, tagsSchema).catch(() => ({ data: { tags: [] } as any }))
       : Promise.resolve({ data: { tags: [] } }),
+    manifest.files.includes('speeds_by_tag.json')
+      ? fetchJson(`${cleanBase}/${version}/speeds_by_tag.json`, speedsByTagSchema).catch(() => ({ data: { tags: {} } as any }))
+      : Promise.resolve({ data: { tags: {} } }),
   ]);
 
-  const { machines, tagToMachine, machineFamilies, tags } = normalizeMachines(machinesRes.data, tagsRes.data);
+  const { machines, tagToMachine, machineFamilies, tags } = normalizeMachines(machinesRes.data, tagsRes.data, speedsRes.data);
   const normalizedRecipes = recipesRes.data.recipes.map((r) => normalizeRecipe(r, tagToMachine, machineFamilies, machines));
   const items = deriveItems(normalizedRecipes);
 

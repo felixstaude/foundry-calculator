@@ -537,7 +537,6 @@ function ProductionGraph({
             lane: col,
           };
         });
-      });
 
       const bundled: GraphEdge[] = [];
       const key = (e: GraphEdge) => `${e.from}->${e.to}:${e.itemId}`;

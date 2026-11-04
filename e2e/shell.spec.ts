@@ -1,0 +1,19 @@
+import { expect, test } from '@playwright/test';
+
+test('shell renders under the base path without console errors @live', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') errors.push(msg.text());
+  });
+  page.on('pageerror', (err) => errors.push(err.message));
+  await page.goto('./');
+  await expect(page.getByRole('heading', { name: 'Foundry Calculator' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('version.json names the build commit @live', async ({ request }) => {
+  const res = await request.get('./version.json');
+  expect(res.ok()).toBe(true);
+  const body = (await res.json()) as { commit: string; builtAt: string };
+  expect(body.commit).toMatch(/^(dev|[0-9a-f]{40})$/);
+});

@@ -5,3 +5,5 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 .DS_Store
+*.local
+.env*.local

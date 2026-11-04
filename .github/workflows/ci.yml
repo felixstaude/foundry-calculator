@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -16,6 +16,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -37,6 +38,7 @@ jobs:
   e2e:
     needs: check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -58,10 +60,12 @@ jobs:
           retention-days: 7
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [check, e2e]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
@@ -71,6 +75,12 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
+      - name: Refuse to deploy anything but the current head of main (re-runs of old runs)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$head" != "$GITHUB_SHA" ]; then echo "::error::$GITHUB_SHA is no longer the head of main ($head)"; exit 1; fi
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: dist
@@ -85,13 +95,14 @@ jobs:
   smoke-live:
     needs: deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       SITE: https://felixstaude.github.io/foundry-calculator/
     steps:
-      - name: Wait until the CDN serves this build
+      - name: Wait until the CDN serves this build (Pages caches for up to 10 minutes and ignores query strings)
         run: |
           for i in $(seq 1 60); do
-            commit=$(curl -fsS "${SITE}version.json?t=$i" | jq -r .commit || true)
+            commit=$(curl -fsS --max-time 10 "${SITE}version.json" | jq -r .commit || true)
             if [ "$commit" = "$GITHUB_SHA" ]; then echo "live: $commit"; exit 0; fi
             echo "attempt $i: live commit '$commit', waiting for $GITHUB_SHA"; sleep 15
           done
@@ -106,3 +117,10 @@ jobs:
       - run: npx playwright test
         env:
           E2E_BASE_URL: ${{ env.SITE }}
+          EXPECTED_COMMIT: ${{ github.sha }}
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-live
+          path: playwright-report
+          retention-days: 7

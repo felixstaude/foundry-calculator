@@ -11,27 +11,27 @@ interface State {
   done: boolean;
 }
 
-async function runAll(): Promise<State> {
-  const results = [checkYalps(), checkLzString()];
-  let nodes: LayoutNode[] = [];
+async function checkElk(): Promise<{ result: CheckResult; nodes: LayoutNode[] }> {
   try {
-    const elk = await checkElkWorker();
-    results.push(elk.result);
-    nodes = elk.nodes;
+    return await checkElkWorker();
   } catch (error) {
-    results.push({ name: 'elk-worker', ok: false, detail: String(error) });
+    return { result: { name: 'elk-worker', ok: false, detail: String(error) }, nodes: [] };
   }
-  return { results, nodes, done: true };
 }
 
 /** #selftest: runs the library checks in the production bundle and shows the ELK layout in React Flow. */
 export default function SelfTest() {
-  const [state, setState] = useState<State>({ results: [], nodes: [], done: false });
+  // the synchronous checks are shown right away, so a hanging worker cannot hide them
+  const [state, setState] = useState<State>(() => ({
+    results: [checkYalps(), checkLzString()],
+    nodes: [],
+    done: false,
+  }));
 
   useEffect(() => {
     let active = true;
-    void runAll().then((next) => {
-      if (active) setState(next);
+    void checkElk().then(({ result, nodes }) => {
+      if (active) setState((prev) => ({ results: [...prev.results, result], nodes, done: true }));
     });
     return () => {
       active = false;

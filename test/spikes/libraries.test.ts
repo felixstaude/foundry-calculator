@@ -9,7 +9,7 @@ describe('library spikes (Node)', () => {
     expect(checkYalps()).toMatchObject({ ok: true });
   });
 
-  it('lz-string round-trips a plan payload without "+"', () => {
+  it('lz-string round-trips a plan payload through a URL hash', () => {
     expect(checkLzString()).toMatchObject({ ok: true });
   });
 

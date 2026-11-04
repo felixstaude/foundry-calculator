@@ -1,0 +1,12 @@
+# Only GitHub Actions pins are updated automatically (one grouped PR per month). npm dependencies are updated by hand
+# in their own PR, so bot PRs never run in parallel with feature work.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ['*']

@@ -1,7 +1,7 @@
 /**
  * Self-test of the libraries the calculator depends on, run inside the production bundle (#selftest).
- * Guards the integration risks found while planning the rebuild: YALPS in the bundle, lz-string (CJS) round trip,
- * the ELK layout worker under the GitHub Pages base path.
+ * Guards the integration risks found while planning the rebuild: YALPS in the bundle, lz-string (CJS) round trip
+ * through a URL hash, the ELK layout worker under the GitHub Pages base path.
  */
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
@@ -33,25 +33,43 @@ export function checkYalps(): CheckResult {
   return { name: 'yalps', ok, detail: `${solution.status} ${solution.result} ${JSON.stringify(values)}` };
 }
 
+/** The share-link transport: compress, put into a URL hash, read it back, decompress. */
 export function checkLzString(): CheckResult {
-  const payload = JSON.stringify({ v: 1, t: [['_base_xenoferrite_plates', 30]], note: 'a+b/c=d' });
+  const payload = JSON.stringify({ v: 1, t: [['_base_technum_rods', 2]], note: 'a+b/c=d' });
   const encoded = compressToEncodedURIComponent(payload);
-  const ok = decompressFromEncodedURIComponent(encoded) === payload && !encoded.includes('+');
+  const hash = new URL(`#p=${encoded}`, 'https://example.test/foundry-calculator/').hash.slice('#p='.length);
+  const ok = decompressFromEncodedURIComponent(hash) === payload;
   return { name: 'lz-string', ok, detail: `${encoded.length} chars` };
 }
 
-export async function checkElkWorker(): Promise<{ result: CheckResult; nodes: LayoutNode[] }> {
-  const elk = new ELK({ workerUrl: elkWorkerUrl });
-  try {
-    const graph = await elk.layout({
-      id: 'root',
-      layoutOptions: { 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' },
-      children: ['a', 'b', 'c'].map((id) => ({ id, width: 120, height: 40 })),
-      edges: [
-        { id: 'ab', sources: ['a'], targets: ['b'] },
-        { id: 'ac', sources: ['a'], targets: ['c'] },
-      ],
+/**
+ * ELK in a web worker. elk-api never rejects when the worker script fails to load, so the worker is created here
+ * with an error listener and the layout races against it and a timeout.
+ */
+export async function checkElkWorker(timeoutMs = 10000): Promise<{ result: CheckResult; nodes: LayoutNode[] }> {
+  const worker = new Worker(elkWorkerUrl);
+  const failed = new Promise<never>((_, reject) => {
+    worker.addEventListener('error', (e) => {
+      reject(new Error(`ELK worker failed to load (${e.message || elkWorkerUrl})`));
     });
+    setTimeout(() => {
+      reject(new Error(`ELK layout timed out after ${timeoutMs} ms`));
+    }, timeoutMs);
+  });
+  const elk = new ELK({ workerFactory: () => worker });
+  try {
+    const graph = await Promise.race([
+      elk.layout({
+        id: 'root',
+        layoutOptions: { 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' },
+        children: ['a', 'b', 'c'].map((id) => ({ id, width: 120, height: 40 })),
+        edges: [
+          { id: 'ab', sources: ['a'], targets: ['b'] },
+          { id: 'ac', sources: ['a'], targets: ['c'] },
+        ],
+      }),
+      failed,
+    ]);
     const nodes = (graph.children ?? []).map((n) => ({ id: n.id, x: n.x ?? Number.NaN, y: n.y ?? Number.NaN }));
     const ok = nodes.length === 3 && nodes.every((n) => Number.isFinite(n.x) && Number.isFinite(n.y));
     return { result: { name: 'elk-worker', ok, detail: JSON.stringify(nodes) }, nodes };

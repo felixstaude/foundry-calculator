@@ -1,31 +1,58 @@
 {
   "name": "foundry-calculator",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
+  "description": "Production calculator for the game Foundry, built on the foundry-recipe-data API",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest --run"
+    "typecheck": "tsc -b",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build"
   },
   "dependencies": {
-    "html-to-image": "^1.11.11",
-    "reactflow": "^11.10.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "zod": "^3.23.8"
+    "@xyflow/react": "^12.12.1",
+    "elkjs": "0.12.1",
+    "lz-string": "1.5.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "yalps": "0.6.4"
   },
   "devDependencies": {
-    "@types/node": "^22.8.1",
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^5.1.0",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.9",
-    "vitest": "^1.6.0"
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/vite": "^4.3.4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "fast-check": "^4.10.2",
+    "globals": "^17.14.0",
+    "happy-dom": "^21.0.4",
+    "highs": "1.15.4",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4.3.4",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
   }
 }

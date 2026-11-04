@@ -1,59 +1,37 @@
 # Foundry Calculator
 
-A static, production-ready calculator for Foundry that computes machine counts, per-minute inputs, and a full crafting dependency tree using the JSON data from `data/v0_6_0_23789/`.
+A production calculator for the factory game [Foundry](https://store.steampowered.com/app/983870/FOUNDRY/). Choose target
+items and rates, and it works out the machines (with tiers), raw resources, byproducts and a production graph.
 
-## Why Vite + React + TypeScript + Tailwind?
+> **Status: rebuild in progress.** The previous version was replaced. The new calculator is built in milestones
+> (M0 toolchain → M7 release); see the pull requests.
 
-- **Static-friendly:** Builds a plain static bundle ideal for GitHub Pages or Vercel static deployments.
-- **Fast DX:** Vite is quick to dev/build, and React + TS keeps the UI strongly typed.
-- **Styling:** Tailwind keeps the UI lean without extra design dependencies.
+- **App:** https://felixstaude.github.io/foundry-calculator/ (self-test of the bundled libraries:
+  [`#selftest`](https://felixstaude.github.io/foundry-calculator/#selftest))
+- **Game data:** loaded at runtime from [foundry-recipe-data](https://github.com/felixstaude/foundry-recipe-data)
+  (GitHub Pages, `foundry-data v1` under `/v1/`). Nothing about the game is hard-coded in this repository.
 
-## Getting started
+## Development
 
-```bash
-npm install
-npm run dev # open http://localhost:5173
+Requires Node.js 24 (`.nvmrc`).
+
+```sh
+npm ci
+npm run dev          # http://localhost:5173/foundry-calculator/
+npm run verify       # typecheck + lint + format check + unit tests + build (same as CI)
+npm run test:e2e     # build, then Playwright against `vite preview` (first run: npx playwright install chromium)
 ```
 
-## Tests
+`VITE_DATA_BASE_URL` points the app at another copy of the data API (e.g. a local server).
 
-```bash
-npm test
-```
+### Project rules
 
-## Production build
+- One pull request at a time. Every PR must pass the CI checks `check` (typecheck, lint, format, unit tests, build) and
+  `e2e` (Playwright on the built app under `/foundry-calculator/`) and be up to date with `main`. Merges are squash merges.
+- `main` deploys to GitHub Pages through `.github/workflows/ci.yml` (build once, test that artifact, deploy it, then wait
+  for the CDN and run the `@live` tests against the site).
+- Domain, data, solver and plan code is plain TypeScript without React. The UI never computes rates itself.
 
-```bash
-npm run build
-npm run preview # optional local preview
-```
+## License
 
-## Data
-
-- Current data lives in `data/v0_6_0_23789/` (items, recipes, machines, version, scrape issues).
-- To update to a new game version, add a new folder under `data/` (e.g., `data/v0_6_0_24000/`) with the same JSON filenames, then update the imports in `src/data/data.ts` to point at the latest version.
-
-## Architecture
-
-- **Data layer:** `src/data/data.ts` loads JSON and exposes helper utilities (tier parsing, variant grouping).
-- **Recipe selection:** `src/logic/recipes.ts` builds producer maps, applies overrides, and respects tier preferences (defaults to Tier 1 when present).
-- **Calculation engine:** `src/logic/calculator.ts` walks recipes recursively, detects cycles, sums per-minute inputs, and skips machine math when `baseTimeSec` is missing while still propagating input needs.
-- **UI:** `src/App.tsx` provides a searchable item picker, variant/tier chooser, machine rounding toggle, advanced recipe overrides, machine tier selection per craftedIn family, an aggregated input table, and a left-to-right production graph that visualizes recipes and flows. State is persisted in the URL for shareable links.
-
-## Handling edge cases
-
-- Missing `baseTimeSec` or `craftedIn`: shown as warnings; machine counts are omitted but input flow still propagates.
-- Invalid/missing recipes: treated as raw inputs with warnings.
-- Cycles: detected and labeled to avoid infinite recursion.
-- Multiple producers: tier preference (Tier 1 by default) first, otherwise deterministic by recipe id; users can override per-item recipes in the advanced panel.
-
-## Deploying
-
-Any static host works. Example with Vercel:
-
-```bash
-npm run build
-# Deploy `dist/` as a static site
-```
-
-For GitHub Pages, you can serve `dist/` via Actions or any static file host.
+Third-party licenses: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Not affiliated with Channel 3 Entertainment.
